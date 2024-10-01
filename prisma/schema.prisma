@@ -1,0 +1,342 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Token {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int      @map("user_id")
+  expiredAt DateTime @map("expired_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("tokens")
+}
+
+model SystemUser {
+  id        Int             @id @default(autoincrement())
+  username  String          @unique
+  password  String
+  role      SystemUserRole? @default(MEMBER)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @default(now()) @updatedAt @map("updated_at")
+
+  @@map("system_users")
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  username       String
+  password       String
+  avatar         String?
+  phoneNumber    String          @map("phone_number")
+  address        String?
+  fullname       String
+  email          String          @unique
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  ProjectMembers ProjectMember[]
+  ReportComment  ReportComment[]
+  AssigneeReport Report[]        @relation("AssigneeReports")
+  CreatedReport  Report[]        @relation("CreatedReports")
+  Tag            Tag[]
+  Notification   Notification[]
+
+  @@map("users")
+}
+
+model Project {
+  id               Int             @id @default(autoincrement())
+  name             String
+  roles            Role[]
+  projectMembers   ProjectMember[]
+  projectThumbnail String?         @map("project_thumbnail")
+  description      String          @db.Text
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
+  Status           Status[]
+  Category         Category[]
+  Report           Report[]
+  Tag              Tag[]
+
+  @@map("projects")
+}
+
+model Role {
+  id             Int             @id @default(autoincrement())
+  category       ProjectRole
+  name           String
+  projectId      Int             @map("project_id")
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ProjectMembers ProjectMember[]
+
+  @@map("roles")
+}
+
+model Status {
+  id        Int      @id @default(autoincrement())
+  name      String
+  projectId Int      @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Task      Task[]
+  Report    Report[]
+
+  @@map("status")
+}
+
+model Category {
+  id        Int     @id @default(autoincrement())
+  name      String
+  projectId Int     @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Task      Task[]
+
+  @@map("categories")
+}
+
+model ProjectMember {
+  id            Int           @id @default(autoincrement())
+  userId        Int           @map("user_id")
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId        Int?          @map("role_id")
+  role          Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  projectId     Int           @map("project_id")
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  TasksCreated  Task[]        @relation("CreatedTasks")
+  TasksAssigned Task[]        @relation("AssignedTasks")
+  Folder        Folder[]
+  File          File[]
+  TaskComment   TaskComment[]
+
+  @@unique([userId, projectId])
+  @@index([userId, projectId])
+  @@map("project_members")
+}
+
+model Task {
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String           @db.Text
+  estimateTime   Int?             @map("estimate_time")
+  deadline       DateTime?
+  priority       Priority?
+  isPublic       Boolean          @default(true) @map("is_public")
+  statusId       Int?             @map("status_id")
+  status         Status?          @relation(fields: [statusId], references: [id], onDelete: SetNull)
+  categoryId     Int?             @map("category_id")
+  category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  references     String[]
+  createdBy      Int              @map("created_by")
+  projectId      Int              @map("project_id")
+  ProjectMember  ProjectMember    @relation("CreatedTasks", fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  assignedTo     Int?             @map("assigned_to")
+  Assignee       ProjectMember?   @relation("AssignedTasks", fields: [assignedTo], references: [id], onDelete: SetNull)
+  TaskAttachment TaskAttachment[]
+  tags           Int[]
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
+  TaskComment    TaskComment[]
+
+  @@map("tasks")
+}
+
+model Folder {
+  id            Int           @id @default(autoincrement())
+  name          String
+  createdBy     Int           @map("created_by")
+  projectId     Int           @map("project_id")
+  isPublic      Boolean       @default(true) @map("is_public")
+  projectMember ProjectMember @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  parentId      Int?          @map("parent_id")
+  parent        Folder?       @relation("FolderSelfReference", fields: [parentId], references: [id], onDelete: Cascade)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
+  tags          Int[]
+  Folder        Folder[]      @relation("FolderSelfReference")
+  File          File[]
+
+  @@map("folder")
+}
+
+model File {
+  id             Int              @id @default(autoincrement())
+  name           String
+  path           String
+  folderId       Int              @map("folder_id")
+  folder         Folder           @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  createdBy      Int              @map("created_by")
+  projectId      Int              @map("project_id")
+  projectMember  ProjectMember    @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  tags           Int[]
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
+  TaskAttachment TaskAttachment[]
+
+  @@map("files")
+}
+
+model TaskAttachment {
+  id     Int  @id @default(autoincrement())
+  fileId Int  @map("file_id")
+  file   File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  taskId Int  @map("task_id")
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
+}
+
+model TaskComment {
+  id            Int           @id @default(autoincrement())
+  content       String        @db.Text
+  createdBy     Int           @map("created_by")
+  projectId     Int           @map("project_id")
+  projectMember ProjectMember @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
+  taskId        Int
+  task          Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_comments")
+}
+
+model Report {
+  id               Int              @id @default(autoincrement())
+  name             String
+  type             ReportType       @default(BUG)
+  severity         Severity?
+  isPublic         Boolean          @default(true) @map("is_public")
+  createdById      Int              @map("created_by_id")
+  createdBy        User             @relation("CreatedReports", fields: [createdById], references: [id], onDelete: Cascade)
+  projectId        Int              @map("project_id")
+  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo       Int?             @map("assigned_to")
+  assignee         User?            @relation("AssigneeReports", fields: [assignedTo], references: [id], onDelete: SetNull)
+  stepsToReproduce String?          @map("steps_to_reproduce") @db.Text
+  expectedBehavior String?          @map("expected_behavior") @db.Text
+  actualResult     String?          @map("actual_result") @db.Text
+  description      String           @db.Text
+  issueType        ReportIssueType? @map("issue_type")
+  url              String           @db.Text
+  additionInfo     Json             @map("additionInfo")
+  status           ReportStatus     @default(INIT)
+  tags             Int[]
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at")
+  ReportImage      ReportImage[]
+  ReportComment    ReportComment[]
+  Status           Status?          @relation(fields: [statusId], references: [id])
+  statusId         Int?
+
+  @@map("reports")
+}
+
+model ReportComment {
+  id          Int      @id @default(autoincrement())
+  content     String   @db.Text
+  createdById Int      @map("created_by_id")
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  reportId    Int
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("report_comments")
+}
+
+model ReportImage {
+  id       Int    @id @default(autoincrement())
+  name     String
+  path     String
+  reportId Int    @map("report_id")
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@map("report_images")
+}
+
+model Tag {
+  id          Int      @id @default(autoincrement())
+  projectId   Int      @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tagType     TagType? @default(PUBLIC)
+  createdById Int      @map("created_by_id")
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  available   Boolean  @default(false)
+
+  @@map("tag")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+enum SystemUserRole {
+  ADMIN
+  MEMBER
+  DEV
+}
+
+enum ProjectRole {
+  OWNER
+  MEMBER
+  GUEST
+}
+
+enum ReportType {
+  BUG
+  FEEDBACK
+  WISH
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  IMMEDIATE
+}
+
+enum Severity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TagType {
+  INTERNAL
+  PUBLIC
+}
+
+enum ReportStatus {
+  INIT
+  CONFIRMING
+  IN_PROCESSING
+  REJECTED
+  DONE
+}
+
+enum ReportIssueType {
+  UI
+  FUNCTIONAL
+  PERFORMANCE
+  SECURITY
+  NETWORK
+  COMPATIBILITY
+  DATA
+}
