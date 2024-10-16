@@ -1,0 +1,791 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": { "200": { "description": "" } },
+        "tags": ["App"]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginReturnEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateUserDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/refresh-token": {
+      "post": {
+        "operationId": "AuthController_refreshToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshTokenDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginEntity" }
+              }
+            }
+          },
+          "401": {
+            "description": "token is not valid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HttpExceptionEntity" }
+              }
+            }
+          },
+          "500": {
+            "description": "generate token exception",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HttpExceptionEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "UsersController_getMe",
+        "parameters": [],
+        "responses": { "200": { "description": "" } },
+        "tags": ["Users"]
+      }
+    },
+    "/projects/me": {
+      "get": {
+        "operationId": "ProjectsController_listProjects",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectPaginateEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "tags": ["projects"]
+      }
+    },
+    "/projects/create": {
+      "post": {
+        "operationId": "ProjectsController_createProject",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProjectDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectEntity" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "tags": ["projects"]
+      }
+    },
+    "/projects/{projectid}/reports/me": {
+      "get": {
+        "operationId": "ReportsController_listReports",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportPaginationEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Reports"]
+      },
+      "post": {
+        "operationId": "ReportsController_createReport",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReportDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReportFullEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Reports"]
+      }
+    },
+    "/projects/{projectid}/reports/me/{id}": {
+      "patch": {
+        "operationId": "ReportsController_updateReport",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateReportDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReportFullEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Reports"]
+      },
+      "get": {
+        "operationId": "ReportsController_getMyReport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReportFullEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Reports"]
+      }
+    },
+    "/files/presigned-url": {
+      "get": {
+        "operationId": "FilesController_getPresignedUrl",
+        "parameters": [
+          {
+            "name": "fileName",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PresignedUrlEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Files"]
+      }
+    },
+    "/projects/{projectid}/reports/{reportid}/report-comments/me": {
+      "get": {
+        "operationId": "ReportCommentsController_listComments",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportCommentPaginateEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ReportComments"]
+      },
+      "post": {
+        "operationId": "ReportCommentsController_createComment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCommentDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportCommentsEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ReportComments"]
+      }
+    },
+    "/projects/{projectid}/reports/{reportid}/report-comments/me/{id}": {
+      "patch": {
+        "operationId": "ReportCommentsController_updateComment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCommentDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportCommentsEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["ReportComments"]
+      },
+      "delete": {
+        "operationId": "ReportCommentsController_deleteComment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GeneralResult" }
+              }
+            }
+          }
+        },
+        "tags": ["ReportComments"]
+      }
+    }
+  },
+  "info": {
+    "title": "THESIS",
+    "description": "The API",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": { "scheme": "bearer", "bearerFormat": "JWT", "type": "http" }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "password"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "RoleEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "category": {
+            "type": "string",
+            "enum": ["OWNER", "MEMBER", "GUEST"]
+          },
+          "name": { "type": "string" },
+          "projectId": { "type": "number" }
+        },
+        "required": ["id", "category", "name", "projectId"]
+      },
+      "UserEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "email": { "type": "string" },
+          "name": { "type": "string" },
+          "avatar": { "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "role": { "$ref": "#/components/schemas/RoleEntity" },
+          "phone_number": { "type": "string" },
+          "username": { "type": "string" }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "avatar",
+          "createdAt",
+          "updatedAt",
+          "role",
+          "phone_number",
+          "username"
+        ]
+      },
+      "LoginReturnEntity": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "refreshToken": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/UserEntity" }
+        },
+        "required": ["accessToken", "refreshToken", "user"]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "email": { "type": "string" },
+          "phoneNumber": { "type": "string" },
+          "address": { "type": "string" },
+          "password": { "type": "string" },
+          "fullname": { "type": "string" }
+        },
+        "required": [
+          "username",
+          "email",
+          "phoneNumber",
+          "address",
+          "password",
+          "fullname"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Refresh Token",
+            "example": "d50a44bc-5249-4406-83b1-afdea1887243"
+          }
+        },
+        "required": ["token"]
+      },
+      "LoginEntity": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "refreshToken": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/UserEntity" }
+        },
+        "required": ["accessToken", "refreshToken"]
+      },
+      "HttpExceptionEntity": { "type": "object", "properties": {} },
+      "UserRoleEntity": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "type": "string", "enum": ["OWNER", "MEMBER", "GUEST"] }
+        },
+        "required": ["name", "category"]
+      },
+      "ProjectEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "projectThumbnail": { "type": "string" },
+          "description": { "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "userRole": { "$ref": "#/components/schemas/UserRoleEntity" }
+        },
+        "required": [
+          "id",
+          "name",
+          "projectThumbnail",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ProjectPaginateEntity": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectEntity" }
+          }
+        },
+        "required": ["total", "items"]
+      },
+      "CreateProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "required": ["name", "description"]
+      },
+      "ReportListItemEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "stepsToReproduce": { "type": "string" },
+          "expectedBehavior": { "type": "string" },
+          "actualResult": { "type": "string" },
+          "issueType": { "type": "string" },
+          "severity": { "type": "string" },
+          "assignedTo": { "type": "number" },
+          "createdById": { "type": "number" },
+          "projectId": { "type": "number" },
+          "status": { "type": "string" },
+          "url": { "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "description",
+          "createdById",
+          "projectId",
+          "status",
+          "url",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ReportPaginationEntity": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportListItemEntity" }
+          }
+        },
+        "required": ["total", "items"]
+      },
+      "CreateReportImageDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string" }
+        },
+        "required": ["name", "path"]
+      },
+      "CreateReportDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "severity": { "type": "string" },
+          "isPublic": { "type": "boolean" },
+          "assignedTo": { "type": "number" },
+          "description": { "type": "string" },
+          "stepsToReproduce": { "type": "string" },
+          "expectedBehavior": { "type": "string" },
+          "actualResult": { "type": "string" },
+          "issueType": { "type": "string" },
+          "additionInfo": { "type": "object" },
+          "url": { "type": "string" },
+          "status": { "type": "string" },
+          "images": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreateReportImageDto" }
+          },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": [
+          "name",
+          "severity",
+          "description",
+          "stepsToReproduce",
+          "expectedBehavior",
+          "actualResult",
+          "issueType",
+          "url"
+        ]
+      },
+      "ReportImageEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "reportId": { "type": "number" }
+        },
+        "required": ["id", "name", "path", "reportId"]
+      },
+      "CreateByEntity": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "avatar": { "type": "string" }
+        },
+        "required": ["username"]
+      },
+      "ReportCommentsEntity": {
+        "type": "object",
+        "properties": {
+          "createdBy": { "$ref": "#/components/schemas/CreateByEntity" },
+          "id": { "type": "number" },
+          "createdById": { "type": "number" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "content": { "type": "string" },
+          "reportId": { "type": "number" }
+        },
+        "required": [
+          "createdBy",
+          "id",
+          "createdById",
+          "createdAt",
+          "updatedAt",
+          "content",
+          "reportId"
+        ]
+      },
+      "ReportFullEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "description": { "type": "string" },
+          "stepsToReproduce": { "type": "string" },
+          "expectedBehavior": { "type": "string" },
+          "actualResult": { "type": "string" },
+          "issueType": { "type": "string" },
+          "severity": { "type": "string" },
+          "assignedTo": { "type": "number" },
+          "createdById": { "type": "number" },
+          "projectId": { "type": "number" },
+          "status": { "type": "string" },
+          "url": { "type": "string" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "ReportImage": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportImageEntity" }
+          },
+          "ReportComment": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportCommentsEntity" }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "description",
+          "createdById",
+          "projectId",
+          "status",
+          "url",
+          "createdAt",
+          "updatedAt",
+          "ReportImage",
+          "ReportComment"
+        ]
+      },
+      "UpdateReportDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "severity": { "type": "string" },
+          "isPublic": { "type": "boolean" },
+          "assignedTo": { "type": "number" },
+          "description": { "type": "string" },
+          "stepsToReproduce": { "type": "string" },
+          "expectedBehavior": { "type": "string" },
+          "actualResult": { "type": "string" },
+          "issueType": { "type": "string" },
+          "additionInfo": { "type": "object" },
+          "url": { "type": "string" },
+          "status": { "type": "string" },
+          "images": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreateReportImageDto" }
+          },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "newImages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreateReportImageDto" }
+          },
+          "deleteImages": { "type": "array", "items": { "type": "number" } }
+        }
+      },
+      "PresignedUrlEntity": {
+        "type": "object",
+        "properties": { "url": { "type": "string" } },
+        "required": ["url"]
+      },
+      "ReportCommentPaginateEntity": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportCommentsEntity" }
+          }
+        },
+        "required": ["total", "items"]
+      },
+      "CreateCommentDto": {
+        "type": "object",
+        "properties": { "content": { "type": "string" } },
+        "required": ["content"]
+      },
+      "GeneralResult": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" }
+        },
+        "required": ["success"]
+      }
+    }
+  },
+  "security": [{ "bearer": [] }]
+}
