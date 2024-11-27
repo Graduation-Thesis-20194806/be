@@ -26,12 +26,24 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Evironment setup
+
+```bash
+docker compose -f docker-compose.db.yml up --build -d
+
+yarn prisma:migrate
+```
+
 ## Project setup
 
 ```bash
-$ yarn install
+cp .env.production .env
 
-$ npm install @openapitools/openapi-generator-cli -g
+#Then fill missing value in env
+```
+
+```bash
+$ yarn install
 ```
 
 ## Compile and run the project

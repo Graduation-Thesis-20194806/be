@@ -236,6 +236,8 @@ model Report {
   ReportComment    ReportComment[]
   Status           Status?          @relation(fields: [statusId], references: [id])
   statusId         Int?
+  groupId          Int?
+  DuplicateGroup   DuplicateGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   @@map("reports")
 }
@@ -284,6 +286,12 @@ model Notification {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("notifications")
+}
+
+model DuplicateGroup {
+  id          Int      @id @default(autoincrement())
+  description String?  @db.Text
+  Report      Report[]
 }
 
 enum SystemUserRole {
@@ -337,6 +345,6 @@ enum ReportIssueType {
   PERFORMANCE
   SECURITY
   NETWORK
-  COMPATIBILITY
   DATA
+  OTHER
 }
