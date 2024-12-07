@@ -8,6 +8,12 @@ import {
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateReportImageDto {
+  @ApiProperty({
+    required: false,
+  })
+  @IsOptional()
+  id?: number;
+
   @ApiProperty()
   name: string;
 

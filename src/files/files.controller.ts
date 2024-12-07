@@ -1,8 +1,9 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { FilesService } from './files.service';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { PresignedUrlEntity } from './entities/presigned-url.entity';
 
+@ApiTags('Files')
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}

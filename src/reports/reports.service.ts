@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProjectRole } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -87,10 +87,58 @@ export class ReportsService {
     projectId: number,
     reportQueryDto: ReportQueryDto,
   ) {
-    const { page, pageSize, role } = reportQueryDto;
+    const {
+      page,
+      pageSize,
+      role,
+      groupId,
+      severity,
+      status,
+      issueType,
+      keyword,
+    } = reportQueryDto;
     const where: Prisma.ReportWhereInput = { projectId };
     if (role === 'owner') where.createdById = user_id;
-    else where.assignedTo = user_id;
+    else if (role === 'assigned') where.assignedTo = user_id;
+    else
+      where.project = {
+        projectMembers: {
+          some: {
+            userId: user_id,
+            role: {
+              category: ProjectRole.OWNER,
+            },
+          },
+        },
+      };
+    if (severity) {
+      where.severity = severity;
+    }
+    if (status) {
+      where.status = status;
+    }
+    if (issueType) {
+      where.issueType = issueType;
+    }
+    if (keyword) {
+      where.OR = [
+        {
+          name: {
+            contains: keyword,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: keyword,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+    if (groupId) {
+      where.groupId = +groupId;
+    }
     const [total, items] = await this.prismaService.$transaction([
       this.prismaService.report.count({
         where,
@@ -99,6 +147,23 @@ export class ReportsService {
         where,
         skip: pageSize * (page - 1),
         take: pageSize,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          assignee: {
+            select: {
+              avatar: true,
+              username: true,
+            },
+          },
+          createdBy: {
+            select: {
+              avatar: true,
+              username: true,
+            },
+          },
+        },
       }),
     ]);
     return {
@@ -135,6 +200,32 @@ export class ReportsService {
             reportId: true,
           },
         },
+        assignee: {
+          select: {
+            avatar: true,
+            username: true,
+          },
+        },
+        createdBy: {
+          select: {
+            avatar: true,
+            username: true,
+          },
+        },
+      },
+    });
+  }
+  async findDuplicate(id: number) {
+    return this.prismaService.duplicateGroup.findFirst({
+      where: {
+        Report: {
+          some: {
+            id,
+          },
+        },
+      },
+      include: {
+        Report: true,
       },
     });
   }

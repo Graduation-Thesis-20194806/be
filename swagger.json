@@ -138,7 +138,7 @@
           }
         },
         "security": [{ "bearer": [] }],
-        "tags": ["projects"]
+        "tags": ["Projects"]
       }
     },
     "/projects/create": {
@@ -164,7 +164,379 @@
           }
         },
         "security": [{ "bearer": [] }],
-        "tags": ["projects"]
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/me/{id}": {
+      "get": {
+        "operationId": "ProjectsController_getProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectEntity" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{id}/roles": {
+      "get": {
+        "operationId": "ProjectsController_getRoles",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/RoleEntity" }
+                }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/roles": {
+      "post": {
+        "operationId": "ProjectsController_createRole",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateRoleDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectEntity" }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/roles/{roleid}": {
+      "delete": {
+        "operationId": "ProjectsController_deleteRole",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "roleid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GeneralResult" }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/members": {
+      "get": {
+        "operationId": "ProjectsController_getMembers",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberPaginateEntity"
+                }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/members/{userid}": {
+      "delete": {
+        "operationId": "ProjectsController_deleteMember",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "userid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GeneralResult" }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/invite": {
+      "get": {
+        "operationId": "ProjectsController_getInvitationLink",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "email",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "roleid",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": { "401": { "description": "" } },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/invite/verify": {
+      "get": {
+        "operationId": "ProjectsController_verifyMember",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GeneralResult" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/tasks/me": {
+      "get": {
+        "operationId": "TasksController_listTasks",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "keyword",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPaginationEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Tasks"]
+      },
+      "post": {
+        "operationId": "TasksController_createTask",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskFullEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Tasks"]
+      }
+    },
+    "/projects/{projectid}/tasks/me/{id}": {
+      "patch": {
+        "operationId": "TasksController_updateTask",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateTaskDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskFullEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Tasks"]
+      },
+      "get": {
+        "operationId": "TasksController_getMyTask",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskFullEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Tasks"]
       }
     },
     "/projects/{projectid}/reports/me": {
@@ -192,6 +564,59 @@
           {
             "name": "role",
             "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "groupId",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "severity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["INFO", "LOW", "MEDIUM", "HIGH"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "issueType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "UI",
+                "FUNCTIONAL",
+                "PERFORMANCE",
+                "SECURITY",
+                "NETWORK",
+                "DATA",
+                "OTHER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "INIT",
+                "CONFIRMING",
+                "IN_PROCESSING",
+                "REJECTED",
+                "DONE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "required": false,
             "in": "query",
             "schema": { "type": "string" }
           }
@@ -237,7 +662,20 @@
     "/projects/{projectid}/reports/me/{id}": {
       "patch": {
         "operationId": "ReportsController_updateReport",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -260,7 +698,14 @@
       },
       "get": {
         "operationId": "ReportsController_getMyReport",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -303,6 +748,12 @@
         "operationId": "ReportCommentsController_listComments",
         "parameters": [
           {
+            "name": "reportid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
             "name": "page",
             "required": false,
             "in": "query",
@@ -327,11 +778,18 @@
             }
           }
         },
-        "tags": ["ReportComments"]
+        "tags": ["Report Comments"]
       },
       "post": {
         "operationId": "ReportCommentsController_createComment",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "reportid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -352,13 +810,26 @@
             }
           }
         },
-        "tags": ["ReportComments"]
+        "tags": ["Report Comments"]
       }
     },
     "/projects/{projectid}/reports/{reportid}/report-comments/me/{id}": {
       "patch": {
         "operationId": "ReportCommentsController_updateComment",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "reportid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -379,11 +850,24 @@
             }
           }
         },
-        "tags": ["ReportComments"]
+        "tags": ["Report Comments"]
       },
       "delete": {
         "operationId": "ReportCommentsController_deleteComment",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "reportid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -394,7 +878,147 @@
             }
           }
         },
-        "tags": ["ReportComments"]
+        "tags": ["Report Comments"]
+      }
+    },
+    "/projects/{projectid}/tasks/{taskid}/task-comments/me": {
+      "get": {
+        "operationId": "CommentsController_listComments",
+        "parameters": [
+          {
+            "name": "taskid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCommentPaginateEntity"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Task Comments"]
+      },
+      "post": {
+        "operationId": "CommentsController_createComment",
+        "parameters": [
+          {
+            "name": "taskid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TaskCreateCommentDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskCommentsEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Task Comments"]
+      }
+    },
+    "/projects/{projectid}/tasks/{taskid}/task-comments/me/{id}": {
+      "patch": {
+        "operationId": "CommentsController_updateComment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "taskid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TaskCreateCommentDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TaskCommentsEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Task Comments"]
+      },
+      "delete": {
+        "operationId": "CommentsController_deleteComment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "taskid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GeneralResult" }
+              }
+            }
+          }
+        },
+        "tags": ["Task Comments"]
       }
     }
   },
@@ -445,23 +1069,21 @@
         "properties": {
           "id": { "type": "number" },
           "email": { "type": "string" },
-          "name": { "type": "string" },
+          "fullname": { "type": "string" },
           "avatar": { "type": "string" },
+          "address": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
           "updatedAt": { "format": "date-time", "type": "string" },
           "role": { "$ref": "#/components/schemas/RoleEntity" },
-          "phone_number": { "type": "string" },
+          "phoneNumber": { "type": "string" },
           "username": { "type": "string" }
         },
         "required": [
           "id",
           "email",
-          "name",
-          "avatar",
+          "fullname",
           "createdAt",
-          "updatedAt",
-          "role",
-          "phone_number",
+          "phoneNumber",
           "username"
         ]
       },
@@ -482,16 +1104,10 @@
           "phoneNumber": { "type": "string" },
           "address": { "type": "string" },
           "password": { "type": "string" },
-          "fullname": { "type": "string" }
+          "fullname": { "type": "string" },
+          "avatar": { "type": "string" }
         },
-        "required": [
-          "username",
-          "email",
-          "phoneNumber",
-          "address",
-          "password",
-          "fullname"
-        ]
+        "required": ["username", "email", "phoneNumber", "password", "fullname"]
       },
       "RefreshTokenDto": {
         "type": "object",
@@ -561,25 +1177,227 @@
         },
         "required": ["name", "description"]
       },
+      "CreateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "type": "string" }
+        },
+        "required": ["name", "category"]
+      },
+      "GeneralResult": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" }
+        },
+        "required": ["success"]
+      },
+      "MemberPaginateEntity": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/UserEntity" }
+          }
+        },
+        "required": ["total", "items"]
+      },
+      "UserCompactEntity": {
+        "type": "object",
+        "properties": {
+          "avatar": { "type": "string" },
+          "username": { "type": "string" }
+        },
+        "required": ["username"]
+      },
+      "ProjectMemberEntity": {
+        "type": "object",
+        "properties": {
+          "user": { "$ref": "#/components/schemas/UserCompactEntity" }
+        },
+        "required": ["user"]
+      },
+      "TaskListItemEntity": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "estimateTime": { "type": "number" },
+          "deadline": { "format": "date-time", "type": "string" },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "IMMEDIATE"]
+          },
+          "isPublic": { "type": "boolean" },
+          "statusId": { "type": "number" },
+          "categoryId": { "type": "number" },
+          "references": { "type": "array", "items": { "type": "string" } },
+          "assignedTo": { "type": "number" },
+          "Assignee": { "$ref": "#/components/schemas/ProjectMemberEntity" },
+          "ProjectMember": {
+            "$ref": "#/components/schemas/ProjectMemberEntity"
+          },
+          "tags": { "type": "array", "items": { "type": "number" } }
+        },
+        "required": ["name", "description", "ProjectMember"]
+      },
+      "TaskPaginationEntity": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskListItemEntity" }
+          }
+        },
+        "required": ["total", "items"]
+      },
+      "CreateTaskDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "estimateTime": { "type": "number" },
+          "deadline": { "format": "date-time", "type": "string" },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "IMMEDIATE"]
+          },
+          "isPublic": { "type": "boolean" },
+          "statusId": { "type": "number" },
+          "categoryId": { "type": "number" },
+          "references": { "type": "array", "items": { "type": "string" } },
+          "assignedTo": { "type": "number" },
+          "tags": { "type": "array", "items": { "type": "number" } },
+          "attachments": { "type": "array", "items": { "type": "array" } }
+        },
+        "required": ["name", "description"]
+      },
+      "FileEntity": { "type": "object", "properties": {} },
+      "TaskCommentsEntity": {
+        "type": "object",
+        "properties": {
+          "projectMember": {
+            "$ref": "#/components/schemas/ProjectMemberEntity"
+          },
+          "id": { "type": "number" },
+          "createdBy": { "type": "number" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "content": { "type": "string" },
+          "taskId": { "type": "number" }
+        },
+        "required": [
+          "projectMember",
+          "id",
+          "createdBy",
+          "createdAt",
+          "updatedAt",
+          "content",
+          "taskId"
+        ]
+      },
+      "TaskFullEntity": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "estimateTime": { "type": "number" },
+          "deadline": { "format": "date-time", "type": "string" },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "IMMEDIATE"]
+          },
+          "isPublic": { "type": "boolean" },
+          "statusId": { "type": "number" },
+          "categoryId": { "type": "number" },
+          "references": { "type": "array", "items": { "type": "string" } },
+          "assignedTo": { "type": "number" },
+          "Assignee": { "$ref": "#/components/schemas/ProjectMemberEntity" },
+          "ProjectMember": {
+            "$ref": "#/components/schemas/ProjectMemberEntity"
+          },
+          "tags": { "type": "array", "items": { "type": "number" } },
+          "TaskAttachment": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FileEntity" }
+          },
+          "TaskComment": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskCommentsEntity" }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "ProjectMember",
+          "TaskAttachment",
+          "TaskComment"
+        ]
+      },
+      "UpdateTaskDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "estimateTime": { "type": "number" },
+          "deadline": { "format": "date-time", "type": "string" },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "IMMEDIATE"]
+          },
+          "isPublic": { "type": "boolean" },
+          "statusId": { "type": "number" },
+          "categoryId": { "type": "number" },
+          "references": { "type": "array", "items": { "type": "string" } },
+          "assignedTo": { "type": "number" },
+          "tags": { "type": "array", "items": { "type": "number" } },
+          "newAttachments": { "type": "array", "items": { "type": "array" } },
+          "deleteAttachments": { "type": "array", "items": { "type": "array" } }
+        }
+      },
       "ReportListItemEntity": {
         "type": "object",
         "properties": {
           "id": { "type": "number" },
           "name": { "type": "string" },
-          "type": { "type": "string" },
+          "type": { "type": "string", "enum": ["BUG", "FEEDBACK", "WISH"] },
           "description": { "type": "string" },
           "stepsToReproduce": { "type": "string" },
           "expectedBehavior": { "type": "string" },
           "actualResult": { "type": "string" },
-          "issueType": { "type": "string" },
-          "severity": { "type": "string" },
+          "issueType": {
+            "type": "string",
+            "enum": [
+              "UI",
+              "FUNCTIONAL",
+              "PERFORMANCE",
+              "SECURITY",
+              "NETWORK",
+              "DATA",
+              "OTHER"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["INFO", "LOW", "MEDIUM", "HIGH"]
+          },
           "assignedTo": { "type": "number" },
           "createdById": { "type": "number" },
           "projectId": { "type": "number" },
-          "status": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["INIT", "CONFIRMING", "IN_PROCESSING", "REJECTED", "DONE"]
+          },
           "url": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
-          "updatedAt": { "format": "date-time", "type": "string" }
+          "updatedAt": { "format": "date-time", "type": "string" },
+          "groupId": { "type": "number" },
+          "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
+          "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" }
         },
         "required": [
           "id",
@@ -591,7 +1409,8 @@
           "status",
           "url",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "createdBy"
         ]
       },
       "ReportPaginationEntity": {
@@ -608,6 +1427,7 @@
       "CreateReportImageDto": {
         "type": "object",
         "properties": {
+          "id": { "type": "number" },
           "name": { "type": "string" },
           "path": { "type": "string" }
         },
@@ -690,20 +1510,40 @@
         "properties": {
           "id": { "type": "number" },
           "name": { "type": "string" },
-          "type": { "type": "string" },
+          "type": { "type": "string", "enum": ["BUG", "FEEDBACK", "WISH"] },
           "description": { "type": "string" },
           "stepsToReproduce": { "type": "string" },
           "expectedBehavior": { "type": "string" },
           "actualResult": { "type": "string" },
-          "issueType": { "type": "string" },
-          "severity": { "type": "string" },
+          "issueType": {
+            "type": "string",
+            "enum": [
+              "UI",
+              "FUNCTIONAL",
+              "PERFORMANCE",
+              "SECURITY",
+              "NETWORK",
+              "DATA",
+              "OTHER"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["INFO", "LOW", "MEDIUM", "HIGH"]
+          },
           "assignedTo": { "type": "number" },
           "createdById": { "type": "number" },
           "projectId": { "type": "number" },
-          "status": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["INIT", "CONFIRMING", "IN_PROCESSING", "REJECTED", "DONE"]
+          },
           "url": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
           "updatedAt": { "format": "date-time", "type": "string" },
+          "groupId": { "type": "number" },
+          "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
+          "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
           "ReportImage": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ReportImageEntity" }
@@ -724,6 +1564,7 @@
           "url",
           "createdAt",
           "updatedAt",
+          "createdBy",
           "ReportImage",
           "ReportComment"
         ]
@@ -777,13 +1618,21 @@
         "properties": { "content": { "type": "string" } },
         "required": ["content"]
       },
-      "GeneralResult": {
+      "TaskCommentPaginateEntity": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "message": { "type": "string" }
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskCommentsEntity" }
+          }
         },
-        "required": ["success"]
+        "required": ["total", "items"]
+      },
+      "TaskCreateCommentDto": {
+        "type": "object",
+        "properties": { "content": { "type": "string" } },
+        "required": ["content"]
       }
     }
   },

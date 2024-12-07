@@ -1,17 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Priority } from '@prisma/client';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class CreateTaskDto {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  name: string;
+export class UpdateTaskDto {
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  id?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  description: string;
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  description?: string;
 
   @IsNumber()
   @IsOptional()
@@ -82,5 +93,12 @@ export class CreateTaskDto {
     required: false,
     isArray: true,
   })
-  attachments?: number[];
+  newAttachments?: number[];
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+    isArray: true,
+  })
+  deleteAttachments?: number[];
 }

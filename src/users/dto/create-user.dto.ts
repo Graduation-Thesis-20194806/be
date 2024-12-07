@@ -17,8 +17,10 @@ export class CreateUserDto {
   phoneNumber: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
   address: string;
 
   @IsNotEmpty()
@@ -30,5 +32,8 @@ export class CreateUserDto {
   fullname: string;
 
   @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
   avatar: string;
 }

@@ -11,15 +11,15 @@ import {
   Query,
 } from '@nestjs/common';
 import { LoggedUserRequest } from 'src/auth/entities/logged-user.entity';
-import { ReportCommentsParams } from './dto/params.dto';
 import { ReportCommentQueryDto } from './dto/comment-query.dto';
 import { ReportCommentsService } from './report-comments.service';
 import { ReportCommentPaginateEntity } from './entities/list-report-comments.entity';
 import { ReportCommentsEntity } from './entities/report-comments.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { GeneralResult } from 'src/common/entities/general-result.entity';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Report Comments')
 @Controller('projects/:projectid/reports/:reportid/report-comments')
 export class ReportCommentsController {
   private logger = new Logger(ReportCommentsController.name);
@@ -31,7 +31,7 @@ export class ReportCommentsController {
   })
   async listComments(
     @Request() { user }: LoggedUserRequest,
-    @Param() { reportid }: ReportCommentsParams,
+    @Param('reportid') reportid: string,
     @Query() queryData: ReportCommentQueryDto,
   ): Promise<ReportCommentPaginateEntity> {
     const { total, items } = await this.commentService.findMany(
@@ -52,7 +52,7 @@ export class ReportCommentsController {
   })
   async createComment(
     @Request() { user }: LoggedUserRequest,
-    @Param() { reportid }: ReportCommentsParams,
+    @Param('reportid') reportid: string,
     @Body() createCommentDto: CreateCommentDto,
   ): Promise<ReportCommentsEntity> {
     const res = await this.commentService.createComment(
@@ -70,7 +70,8 @@ export class ReportCommentsController {
   })
   async updateComment(
     @Request() { user }: LoggedUserRequest,
-    @Param() { reportid, id }: ReportCommentsParams & { id: string },
+    @Param('id') id: string,
+    @Param('reportid') reportid: string,
     @Body() updateCommentDto: CreateCommentDto,
   ): Promise<ReportCommentsEntity> {
     const res = await this.commentService.updateComment(
@@ -89,7 +90,8 @@ export class ReportCommentsController {
   })
   async deleteComment(
     @Request() { user }: LoggedUserRequest,
-    @Param() { reportid, id }: ReportCommentsParams & { id: string },
+    @Param('id') id: string,
+    @Param('reportid') reportid: string,
   ): Promise<GeneralResult> {
     const res = await this.commentService.delete(+user.id, +reportid, +id);
     if (res) return { success: true };

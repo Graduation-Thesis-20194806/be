@@ -14,13 +14,28 @@ datasource db {
 }
 
 model Token {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  userId    Int       @map("user_id")
+  expiredAt DateTime  @map("expired_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  type      TokenType @default(REFRESH)
+
+  @@map("tokens")
+}
+
+model InvitationToken {
   id        Int      @id @default(autoincrement())
   token     String   @unique
   userId    Int      @map("user_id")
+  projectId Int      @map("project_id")
+  roleId    Int      @map("role_id")
   expiredAt DateTime @map("expired_at")
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@map("tokens")
+  @@unique([userId, projectId])
+  @@index([userId, projectId])
+  @@map("invitation_tokens")
 }
 
 model SystemUser {
@@ -135,7 +150,7 @@ model Task {
   status         Status?          @relation(fields: [statusId], references: [id], onDelete: SetNull)
   categoryId     Int?             @map("category_id")
   category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  references     String[]
+  references     String[]         
   createdBy      Int              @map("created_by")
   projectId      Int              @map("project_id")
   ProjectMember  ProjectMember    @relation("CreatedTasks", fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
@@ -237,7 +252,8 @@ model Report {
   Status           Status?          @relation(fields: [statusId], references: [id])
   statusId         Int?
   groupId          Int?
-  DuplicateGroup   DuplicateGroup?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  DuplicateGroup   DuplicateGroup?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  isProcessing     Boolean          @default(false) @map("is_processing")
 
   @@map("reports")
 }
@@ -347,4 +363,9 @@ enum ReportIssueType {
   NETWORK
   DATA
   OTHER
+}
+
+enum TokenType {
+  REFRESH
+  RECOVER
 }

@@ -1,60 +1,46 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Priority } from '@prisma/client';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ProjectMemberEntity } from 'src/projects/entities/project.entity';
 
-export class CreateTaskDto {
-  @IsString()
-  @IsNotEmpty()
+export class TaskListItemEntity {
   @ApiProperty()
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
   @ApiProperty()
   description: string;
 
-  @IsNumber()
-  @IsOptional()
   @ApiProperty({
     required: false,
   })
   estimateTime?: number; //minutes
 
-  @IsOptional()
   @ApiProperty({
     required: false,
     type: Date,
   })
   deadline?: Date;
 
-  @IsOptional()
   @ApiProperty({
     required: false,
     enum: Priority,
   })
   priority?: Priority;
 
-  @IsOptional()
   @ApiProperty({
     required: false,
   })
   isPublic?: boolean;
 
-  @IsOptional()
-  @IsNumber()
   @ApiProperty({
     required: false,
   })
   statusId?: number;
 
-  @IsOptional()
-  @IsNumber()
   @ApiProperty({
     required: false,
   })
   categoryId?: number;
 
-  @IsOptional()
   @ApiProperty({
     required: false,
     isArray: true,
@@ -62,14 +48,22 @@ export class CreateTaskDto {
   })
   references?: string[] = [];
 
-  @IsOptional()
-  @IsNumber()
   @ApiProperty({
     required: false,
   })
   assignedTo?: number;
 
-  @IsOptional()
+  @ApiProperty({
+    required: false,
+    type: ProjectMemberEntity,
+  })
+  Assignee?: ProjectMemberEntity;
+
+  @ApiProperty({
+    type: ProjectMemberEntity,
+  })
+  ProjectMember: ProjectMemberEntity;
+
   @ApiProperty({
     required: false,
     isArray: true,
@@ -77,10 +71,7 @@ export class CreateTaskDto {
   })
   tags?: number[] = [];
 
-  @IsOptional()
-  @ApiProperty({
-    required: false,
-    isArray: true,
-  })
-  attachments?: number[];
+  constructor(partial: Partial<TaskListItemEntity>) {
+    Object.assign(this, partial);
+  }
 }

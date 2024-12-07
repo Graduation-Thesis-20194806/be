@@ -17,9 +17,10 @@ import { UpdateReportDto } from './dto/update-report.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
 import { ReportListItemEntity } from './entities/report.entity';
 import { ReportFullEntity } from './entities/report-full.entity';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReportPaginationEntity } from './entities/list-report.entity';
 
+@ApiTags('Reports')
 @Controller('projects/:projectid/reports')
 export class ReportsController {
   private logger = new Logger(ReportsController.name);
@@ -68,7 +69,8 @@ export class ReportsController {
   })
   async updateReport(
     @Request() { user }: LoggedUserRequest,
-    @Param() { id, projectid }: { id: string; projectid: string },
+    @Param('projectid') projectid: string,
+    @Param('id') id: string,
     @Body() reportData: UpdateReportDto,
   ): Promise<ReportFullEntity> {
     const res = await this.reportsService.updateReport(
@@ -85,9 +87,7 @@ export class ReportsController {
     status: 200,
     type: ReportFullEntity,
   })
-  async getMyReport(
-    @Param() { id }: { id: string },
-  ): Promise<ReportFullEntity> {
+  async getMyReport(@Param('id') id: string): Promise<ReportFullEntity> {
     const res = await this.reportsService.getMeOne(+id);
     return new ReportFullEntity(res);
   }

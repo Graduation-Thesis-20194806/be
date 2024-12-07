@@ -18,6 +18,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { ReportsModule } from './reports/reports.module';
 import { FilesModule } from './files/files.module';
 import { ReportCommentsModule } from './report-comments/report-comments.module';
+import { EmailModule } from './email/email.module';
+import { CommentsModule } from './comments/comments.module';
 // Import các module khác
 
 @Module({
@@ -61,6 +63,8 @@ import { ReportCommentsModule } from './report-comments/report-comments.module';
     ReportsModule,
     FilesModule,
     ReportCommentsModule,
+    EmailModule,
+    CommentsModule,
     // Các module khác
   ],
   controllers: [AppController],

@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ProjectRole } from '@prisma/client';
+import { UserCompactEntity } from 'src/users/entities/user.entity';
+
+export class ProjectMemberEntity {
+  @ApiProperty({
+    type: UserCompactEntity,
+  })
+  user: UserCompactEntity;
+}
 class UserRoleEntity {
   @ApiProperty()
   name?: string;
