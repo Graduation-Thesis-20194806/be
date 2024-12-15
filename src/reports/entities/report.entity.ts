@@ -75,6 +75,16 @@ export class ReportListItemEntity {
   })
   createdBy: UserCompactEntity;
 
+  @ApiProperty({
+    required: false,
+  })
+  phaseId: number;
+
+  @ApiProperty({
+    required: false,
+  })
+  isProcessing?: boolean;
+
   constructor(partial: Partial<ReportListItemEntity>) {
     Object.assign(this, partial);
   }

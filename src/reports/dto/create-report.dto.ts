@@ -102,4 +102,10 @@ export class CreateReportDto {
     required: false,
   })
   tags?: string[] = [];
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  phaseId?: number;
 }

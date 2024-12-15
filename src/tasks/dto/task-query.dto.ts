@@ -13,4 +13,22 @@ export class TaskQueryDto extends PaginateDto {
     type: String,
   })
   keyword?: string;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  categoryId?: number;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  statusId?: number;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  phaseId?: number;
 }

@@ -19,15 +19,35 @@ export class TasksService {
     projectid: number,
     taskData: CreateTaskDto,
   ) {
-    const { attachments, ...createTaskDto } = taskData;
+    const { attachments, phaseId, ...createTaskDto } = taskData;
+    let phaseIdInput = phaseId;
+    if (!phaseId) {
+      const phase = await this.prismaService.phase.findFirst({
+        where: {
+          projectId: projectid,
+          from: {
+            lte: new Date(),
+          },
+          to: {
+            gte: new Date(),
+          },
+        },
+      });
+      phaseIdInput = phase?.id;
+    }
     const task = await this.prismaService.task.create({
       data: {
         projectId: projectid,
         createdBy: user_id,
+        phaseId: phaseIdInput,
         ...createTaskDto,
       } as any,
       include: {
-        TaskAttachment: true,
+        TaskAttachment: {
+          include: {
+            file: true,
+          },
+        },
         TaskComment: {
           include: {
             projectMember: {
@@ -42,12 +62,21 @@ export class TasksService {
             },
           },
         },
+        Report: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
+
     if (attachments?.length) {
       const taskAttachments =
         await this.prismaService.taskAttachment.createManyAndReturn({
           data: attachments.map((item) => ({ fileId: item, taskId: task.id })),
+          include: {
+            file: true,
+          },
         });
       task.TaskAttachment = taskAttachments;
     }
@@ -59,11 +88,13 @@ export class TasksService {
     task_id: number,
     taskData: UpdateTaskDto,
   ) {
-    const { newAttachments, deleteAttachments, ...updateTaskDto } = taskData;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { newAttachments, deleteAttachments, attachments, ...updateTaskDto } =
+      taskData;
     if (deleteAttachments?.length) {
       await this.prismaService.taskAttachment.deleteMany({
         where: {
-          id: {
+          fileId: {
             in: deleteAttachments,
           },
         },
@@ -79,7 +110,11 @@ export class TasksService {
         ...updateTaskDto,
       } as any,
       include: {
-        TaskAttachment: true,
+        TaskAttachment: {
+          include: {
+            file: true,
+          },
+        },
         TaskComment: {
           include: {
             projectMember: {
@@ -94,6 +129,11 @@ export class TasksService {
             },
           },
         },
+        Report: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
     if (!task) return;
@@ -104,6 +144,9 @@ export class TasksService {
             fileId: item,
             taskId: task.id,
           })),
+          include: {
+            file: true,
+          },
         });
       task.TaskAttachment.push(...taskAttachments);
     }
@@ -115,7 +158,8 @@ export class TasksService {
     projectId: number,
     taskQueryDto: TaskQueryDto,
   ) {
-    const { page, pageSize, role, keyword } = taskQueryDto;
+    const { page, pageSize, role, keyword, categoryId, statusId, phaseId } =
+      taskQueryDto;
     const where: Prisma.TaskWhereInput = { projectId };
     if (role === 'owner') where.createdBy = user_id;
     else if (role === 'assigned') where.assignedTo = user_id;
@@ -135,6 +179,18 @@ export class TasksService {
         },
       ];
     }
+    if (categoryId) {
+      where.categoryId = +categoryId;
+    }
+    if (statusId) {
+      where.statusId = +statusId;
+    }
+
+    if (phaseId) {
+      if (+phaseId == 0) {
+        where.phaseId = null;
+      } else where.phaseId = +phaseId;
+    }
     const [total, items] = await this.prismaService.$transaction([
       this.prismaService.task.count({
         where,
@@ -147,6 +203,11 @@ export class TasksService {
           createdAt: 'desc',
         },
         include: {
+          Report: {
+            select: {
+              name: true,
+            },
+          },
           Assignee: {
             include: {
               user: {
@@ -182,7 +243,11 @@ export class TasksService {
         id: task_id,
       },
       include: {
-        TaskAttachment: true,
+        TaskAttachment: {
+          include: {
+            file: true,
+          },
+        },
         TaskComment: {
           orderBy: [
             {
@@ -200,6 +265,11 @@ export class TasksService {
                 },
               },
             },
+          },
+        },
+        Report: {
+          select: {
+            name: true,
           },
         },
         Assignee: {

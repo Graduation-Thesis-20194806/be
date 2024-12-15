@@ -4,6 +4,8 @@ import { ProjectMemberEntity } from 'src/projects/entities/project.entity';
 
 export class TaskListItemEntity {
   @ApiProperty()
+  id: number;
+  @ApiProperty()
   name: string;
 
   @ApiProperty()
@@ -70,6 +72,19 @@ export class TaskListItemEntity {
     type: Number,
   })
   tags?: number[] = [];
+
+  @ApiProperty()
+  Report: {
+    name: string;
+  };
+
+  @ApiProperty()
+  reportId: number;
+
+  @ApiProperty({
+    required: false,
+  })
+  phaseId: number;
 
   constructor(partial: Partial<TaskListItemEntity>) {
     Object.assign(this, partial);

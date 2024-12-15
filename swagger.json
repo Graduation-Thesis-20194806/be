@@ -9,6 +9,428 @@
         "tags": ["App"]
       }
     },
+    "/projects/{projectid}/statistic/report-status-count": {
+      "get": {
+        "operationId": "StatisticController_getReportStatusCount",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date/time of the phase",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date/time of the phase",
+            "schema": {
+              "example": "2024-02-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateType",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns array of objects with {status, count}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "INIT",
+                          "CONFIRMING",
+                          "IN_PROCESSING",
+                          "REJECTED",
+                          "DONE"
+                        ]
+                      },
+                      "count": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get count of reports by status",
+        "tags": ["Statistic"]
+      }
+    },
+    "/projects/{projectid}/statistic/report-severity-count": {
+      "get": {
+        "operationId": "StatisticController_getReportSeverityCount",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date/time of the phase",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date/time of the phase",
+            "schema": {
+              "example": "2024-02-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateType",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns array of objects with {severity, count}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "severity": {
+                        "type": "string",
+                        "enum": ["INFO", "LOW", "MEDIUM", "HIGH", "null"]
+                      },
+                      "count": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get count of reports by severity",
+        "tags": ["Statistic"]
+      }
+    },
+    "/projects/{projectid}/statistic/report-type-count": {
+      "get": {
+        "operationId": "StatisticController_getReportTypeCount",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date/time of the phase",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date/time of the phase",
+            "schema": {
+              "example": "2024-02-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateType",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns array of objects with {type, count}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["BUG", "FEEDBACK", "WISH"]
+                      },
+                      "count": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get count of reports by type",
+        "tags": ["Statistic"]
+      }
+    },
+    "/projects/{projectid}/statistic/report-issue-type-count": {
+      "get": {
+        "operationId": "StatisticController_getReportIssueTypeCount",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date/time of the phase",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date/time of the phase",
+            "schema": {
+              "example": "2024-02-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateType",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns array of objects with {type, count}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "issueType": {
+                        "type": "string",
+                        "enum": [
+                          "UI",
+                          "FUNCTIONAL",
+                          "PERFORMANCE",
+                          "SECURITY",
+                          "NETWORK",
+                          "DATA",
+                          "OTHER"
+                        ]
+                      },
+                      "count": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get count of reports by type",
+        "tags": ["Statistic"]
+      }
+    },
+    "/projects/{projectid}/statistic/reports-by-time": {
+      "get": {
+        "operationId": "StatisticController_getReportStatisticByTime",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date/time of the phase",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date/time of the phase",
+            "schema": {
+              "example": "2024-02-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateType",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns array of objects with {date, count}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": { "type": "string", "example": "2024-01" },
+                      "count": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the number of reports created each day/month/type over a given period",
+        "tags": ["Statistic"]
+      }
+    },
+    "/projects/{projectid}/statistic/reports-by-member": {
+      "get": {
+        "operationId": "StatisticController_getReportStatisticByMember",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start date/time of the phase",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End date/time of the phase",
+            "schema": {
+              "example": "2024-02-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateType",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns array of objects with {date, count}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "userId": { "type": "number" },
+                      "count": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the number of reports owned/assigned by member over a given period",
+        "tags": ["Statistic"]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
@@ -406,6 +828,622 @@
         "tags": ["Projects"]
       }
     },
+    "/projects/{projectid}/status": {
+      "post": {
+        "operationId": "ProjectsController_createStatus",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The status has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusEntity" }
+              }
+            }
+          },
+          "400": { "description": "Invalid input data." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Create a new status",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "ProjectsController_findAllStatus",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of statuses retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/StatusEntity" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Get all statuses",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/status/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findOneStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusEntity" }
+              }
+            }
+          },
+          "404": { "description": "Status not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Get a single status by ID",
+        "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "ProjectsController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateStatusDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The status has been successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusEntity" }
+              }
+            }
+          },
+          "404": { "description": "Status not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Update an existing status by ID",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_removeStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The status has been successfully deleted.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatusEntity" }
+              }
+            }
+          },
+          "404": { "description": "Status not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Delete a status by ID",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/category": {
+      "post": {
+        "operationId": "ProjectsController_createCategory",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCategoryDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The category has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CategoryEntity" }
+              }
+            }
+          },
+          "400": { "description": "Invalid input data." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Create a new category",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "ProjectsController_findAllCategory",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of categories retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/CategoryEntity" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Get all categories",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/category/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findOneCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CategoryEntity" }
+              }
+            }
+          },
+          "404": { "description": "Category not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Get a single category by ID",
+        "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "ProjectsController_updateCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateCategoryDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The category has been successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CategoryEntity" }
+              }
+            }
+          },
+          "404": { "description": "Category not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Update an existing category by ID",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_removeCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The category has been successfully deleted.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CategoryEntity" }
+              }
+            }
+          },
+          "404": { "description": "Category not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Delete a category by ID",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/phases": {
+      "post": {
+        "operationId": "ProjectsController_createPhase",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "description": "Project ID",
+            "schema": { "type": "number" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePhaseDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Phase created successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseEntity" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Create a new Phase",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "ProjectsController_findAllPhases",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "description": "Project ID",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of phases returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PhaseEntity" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Get all Phases for a Project",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectid}/phases/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findOnePhase",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "description": "Project ID",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Phase ID",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Phase returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseEntity" }
+              }
+            }
+          },
+          "404": { "description": "Phase not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Get a single Phase by ID",
+        "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "ProjectsController_updatePhase",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "description": "Project ID",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Phase ID",
+            "schema": { "type": "number" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePhaseDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phase updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseEntity" }
+              }
+            }
+          },
+          "404": { "description": "Phase not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Update a Phase by ID",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_removePhase",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "description": "Project ID",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Phase ID",
+            "schema": { "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Phase deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PhaseEntity" }
+              }
+            }
+          },
+          "404": { "description": "Phase not found." }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Delete a Phase by ID",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectId}/assign-issue-type": {
+      "post": {
+        "operationId": "ProjectsController_assignIssueType",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 1, "type": "number" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AssignIssueTypeDto" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "ProjectsController_getAssigns",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 1, "type": "number" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "summary": "Get all assignments in a project",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectId}/assign-issue-type/{assignId}": {
+      "get": {
+        "operationId": "ProjectsController_getAssignById",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 1, "type": "number" }
+          },
+          {
+            "name": "assignId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 10, "type": "number" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "summary": "Get a specific assignment in a project",
+        "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "ProjectsController_updateAssign",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 1, "type": "number" }
+          },
+          {
+            "name": "assignId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 10, "type": "number" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateAssignDto" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "summary": "Update issueType for an assignment",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_removeAssign",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 1, "type": "number" }
+          },
+          {
+            "name": "assignId",
+            "required": true,
+            "in": "path",
+            "schema": { "example": 10, "type": "number" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "summary": "Delete an assignment",
+        "tags": ["Projects"]
+      }
+    },
     "/projects/{projectid}/tasks/me": {
       "get": {
         "operationId": "TasksController_listTasks",
@@ -439,6 +1477,24 @@
             "required": false,
             "in": "query",
             "schema": { "type": "string" }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "statusId",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "phaseId",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
           }
         ],
         "responses": {
@@ -457,7 +1513,14 @@
       },
       "post": {
         "operationId": "TasksController_createTask",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -619,6 +1682,12 @@
             "required": false,
             "in": "query",
             "schema": { "type": "string" }
+          },
+          {
+            "name": "phaseId",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
           }
         ],
         "responses": {
@@ -637,7 +1706,14 @@
       },
       "post": {
         "operationId": "ReportsController_createReport",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1204,6 +2280,194 @@
         },
         "required": ["total", "items"]
       },
+      "CreateProjectStatusDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the status",
+            "example": "In Progress"
+          }
+        },
+        "required": ["name"]
+      },
+      "StatusEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      },
+      "UpdateStatusDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The new name of the status",
+            "example": "Completed"
+          }
+        }
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the category",
+            "example": "Backend"
+          }
+        },
+        "required": ["name"]
+      },
+      "CategoryEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The new name of the category",
+            "example": "Frontend"
+          }
+        }
+      },
+      "CreatePhaseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the phase",
+            "example": "Design Phase"
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the phase",
+            "example": "Initial design and planning"
+          },
+          "from": {
+            "type": "string",
+            "description": "Start date/time of the phase",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "to": {
+            "type": "string",
+            "description": "End date/time of the phase",
+            "example": "2024-02-01T00:00:00.000Z"
+          }
+        },
+        "required": ["name", "from", "to"]
+      },
+      "PhaseEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the Phase",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the Phase",
+            "example": "Design Phase"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the Phase",
+            "example": "Initial design and planning",
+            "nullable": true
+          },
+          "from": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Start datetime of the Phase",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "to": {
+            "format": "date-time",
+            "type": "string",
+            "description": "End datetime of the Phase",
+            "example": "2024-02-01T00:00:00.000Z"
+          },
+          "projectId": {
+            "type": "number",
+            "description": "Associated Project ID",
+            "example": 10
+          }
+        },
+        "required": ["id", "name", "description", "from", "to", "projectId"]
+      },
+      "UpdatePhaseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the phase",
+            "example": "Updated Phase Name"
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the phase",
+            "example": "Updated description"
+          },
+          "from": {
+            "type": "string",
+            "description": "Start date/time of the phase",
+            "example": "2024-01-05T00:00:00.000Z"
+          },
+          "to": {
+            "type": "string",
+            "description": "End date/time of the phase",
+            "example": "2024-02-10T00:00:00.000Z"
+          }
+        }
+      },
+      "AssignIssueTypeDto": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "number", "example": 10 },
+          "issueType": {
+            "type": "string",
+            "enum": [
+              "UI",
+              "FUNCTIONAL",
+              "PERFORMANCE",
+              "SECURITY",
+              "NETWORK",
+              "DATA",
+              "OTHER"
+            ],
+            "example": "UI"
+          }
+        },
+        "required": ["userId", "issueType"]
+      },
+      "UpdateAssignDto": {
+        "type": "object",
+        "properties": {
+          "issueType": {
+            "type": "string",
+            "enum": [
+              "UI",
+              "FUNCTIONAL",
+              "PERFORMANCE",
+              "SECURITY",
+              "NETWORK",
+              "DATA",
+              "OTHER"
+            ],
+            "example": "UI"
+          },
+          "userId": { "type": "number", "example": 10 }
+        },
+        "required": ["issueType", "userId"]
+      },
       "UserCompactEntity": {
         "type": "object",
         "properties": {
@@ -1222,6 +2486,7 @@
       "TaskListItemEntity": {
         "type": "object",
         "properties": {
+          "id": { "type": "number" },
           "name": { "type": "string" },
           "description": { "type": "string" },
           "estimateTime": { "type": "number" },
@@ -1239,9 +2504,19 @@
           "ProjectMember": {
             "$ref": "#/components/schemas/ProjectMemberEntity"
           },
-          "tags": { "type": "array", "items": { "type": "number" } }
+          "tags": { "type": "array", "items": { "type": "number" } },
+          "Report": { "type": "object" },
+          "reportId": { "type": "number" },
+          "phaseId": { "type": "number" }
         },
-        "required": ["name", "description", "ProjectMember"]
+        "required": [
+          "id",
+          "name",
+          "description",
+          "ProjectMember",
+          "Report",
+          "reportId"
+        ]
       },
       "TaskPaginationEntity": {
         "type": "object",
@@ -1271,11 +2546,26 @@
           "references": { "type": "array", "items": { "type": "string" } },
           "assignedTo": { "type": "number" },
           "tags": { "type": "array", "items": { "type": "number" } },
-          "attachments": { "type": "array", "items": { "type": "array" } }
+          "attachments": { "type": "array", "items": { "type": "number" } },
+          "reportId": { "type": "number" },
+          "phaseId": { "type": "number" }
         },
         "required": ["name", "description"]
       },
-      "FileEntity": { "type": "object", "properties": {} },
+      "FileEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "path": { "type": "string" }
+        },
+        "required": ["id", "name", "path"]
+      },
+      "TaskAttachmentEntity": {
+        "type": "object",
+        "properties": { "file": { "$ref": "#/components/schemas/FileEntity" } },
+        "required": ["file"]
+      },
       "TaskCommentsEntity": {
         "type": "object",
         "properties": {
@@ -1302,6 +2592,7 @@
       "TaskFullEntity": {
         "type": "object",
         "properties": {
+          "id": { "type": "number" },
           "name": { "type": "string" },
           "description": { "type": "string" },
           "estimateTime": { "type": "number" },
@@ -1320,9 +2611,12 @@
             "$ref": "#/components/schemas/ProjectMemberEntity"
           },
           "tags": { "type": "array", "items": { "type": "number" } },
+          "Report": { "type": "object" },
+          "reportId": { "type": "number" },
+          "phaseId": { "type": "number" },
           "TaskAttachment": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/FileEntity" }
+            "items": { "$ref": "#/components/schemas/TaskAttachmentEntity" }
           },
           "TaskComment": {
             "type": "array",
@@ -1330,9 +2624,12 @@
           }
         },
         "required": [
+          "id",
           "name",
           "description",
           "ProjectMember",
+          "Report",
+          "reportId",
           "TaskAttachment",
           "TaskComment"
         ]
@@ -1356,7 +2653,13 @@
           "assignedTo": { "type": "number" },
           "tags": { "type": "array", "items": { "type": "number" } },
           "newAttachments": { "type": "array", "items": { "type": "array" } },
-          "deleteAttachments": { "type": "array", "items": { "type": "array" } }
+          "deleteAttachments": {
+            "type": "array",
+            "items": { "type": "array" }
+          },
+          "attachments": { "type": "array", "items": { "type": "number" } },
+          "reportId": { "type": "number" },
+          "phaseId": { "type": "number" }
         }
       },
       "ReportListItemEntity": {
@@ -1397,7 +2700,9 @@
           "updatedAt": { "format": "date-time", "type": "string" },
           "groupId": { "type": "number" },
           "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
-          "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" }
+          "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
+          "phaseId": { "type": "number" },
+          "isProcessing": { "type": "boolean" }
         },
         "required": [
           "id",
@@ -1453,7 +2758,8 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/CreateReportImageDto" }
           },
-          "tags": { "type": "array", "items": { "type": "string" } }
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "phaseId": { "type": "number" }
         },
         "required": [
           "name",
@@ -1544,6 +2850,8 @@
           "groupId": { "type": "number" },
           "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
           "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
+          "phaseId": { "type": "number" },
+          "isProcessing": { "type": "boolean" },
           "ReportImage": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ReportImageEntity" }
@@ -1590,6 +2898,7 @@
             "items": { "$ref": "#/components/schemas/CreateReportImageDto" }
           },
           "tags": { "type": "array", "items": { "type": "string" } },
+          "phaseId": { "type": "number" },
           "newImages": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/CreateReportImageDto" }

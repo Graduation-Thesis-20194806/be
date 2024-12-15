@@ -41,4 +41,10 @@ export class ReportQueryDto extends PaginateDto {
     type: String,
   })
   keyword?: string;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  phaseId?: number;
 }

@@ -53,7 +53,7 @@ export class TasksController {
   async createTask(
     @Request() { user }: LoggedUserRequest,
     @Body() taskData: CreateTaskDto,
-    @Param() { projectid },
+    @Param('projectid') projectid: string,
   ): Promise<TaskFullEntity> {
     const res = await this.tasksService.createTask(
       +user.id,

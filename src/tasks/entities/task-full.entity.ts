@@ -3,12 +3,18 @@ import { TaskListItemEntity } from './task.entity';
 import { FileEntity } from 'src/files/entities/file.entity';
 import { TaskCommentsEntity } from 'src/comments/entities/task-comments.entity';
 
+export class TaskAttachmentEntity {
+  @ApiProperty({
+    type: FileEntity,
+  })
+  file: FileEntity;
+}
 export class TaskFullEntity extends TaskListItemEntity {
   @ApiProperty({
     isArray: true,
-    type: FileEntity,
+    type: TaskAttachmentEntity,
   })
-  TaskAttachment: FileEntity[];
+  TaskAttachment: TaskAttachmentEntity[];
   @ApiProperty({
     isArray: true,
     type: TaskCommentsEntity,

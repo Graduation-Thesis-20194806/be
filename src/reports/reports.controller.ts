@@ -53,7 +53,7 @@ export class ReportsController {
   async createReport(
     @Request() { user }: LoggedUserRequest,
     @Body() reportData: CreateReportDto,
-    @Param() { projectid },
+    @Param('projectid') projectid: string,
   ): Promise<ReportFullEntity> {
     const res = await this.reportsService.createReport(
       +user.id,

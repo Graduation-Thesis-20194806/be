@@ -20,6 +20,10 @@ import { FilesModule } from './files/files.module';
 import { ReportCommentsModule } from './report-comments/report-comments.module';
 import { EmailModule } from './email/email.module';
 import { CommentsModule } from './comments/comments.module';
+import { StatisticController } from './statistic/statistic.controller';
+import { StatisticModule } from './statistic/statistic.module';
+import { RedisController } from './redis/redis/redis.controller';
+import { RedisModule } from './redis/redis.module';
 // Import các module khác
 
 @Module({
@@ -65,9 +69,11 @@ import { CommentsModule } from './comments/comments.module';
     ReportCommentsModule,
     EmailModule,
     CommentsModule,
+    StatisticModule,
+    RedisModule,
     // Các module khác
   ],
-  controllers: [AppController],
+  controllers: [AppController, StatisticController, RedisController],
   providers: [
     AppService,
     PrismaService,

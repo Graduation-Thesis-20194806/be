@@ -1,12 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project';
-import { Prisma, ProjectRole } from '@prisma/client';
+import { Prisma, ProjectRole, ReportIssueType } from '@prisma/client';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { nanoid } from 'nanoid';
 import { EmailService } from 'src/email/email.service';
+import { CreateProjectStatusDto } from './dto/create-status.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CreatePhaseDto } from './dto/create-phase.dto';
+import { UpdatePhaseDto } from './dto/update-phase.dto';
+import { AssignIssueTypeDto } from './dto/assign-issue-type.dto';
+import { UpdateAssignDto } from './dto/update-assign.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -277,5 +285,302 @@ export class ProjectsService {
     });
     if (res) return true;
     return false;
+  }
+
+  async createStatus(projectid: number, data: CreateProjectStatusDto) {
+    return this.prismaService.status.create({
+      data: {
+        ...data,
+        projectId: projectid,
+      },
+    });
+  }
+
+  async findAllStatus(projectid: number) {
+    return this.prismaService.status.findMany({
+      where: {
+        projectId: projectid,
+      },
+    });
+  }
+
+  async findOneStatus(projectid: number, id: number) {
+    const status = await this.prismaService.status.findUnique({
+      where: { projectId: projectid, id },
+    });
+    if (!status) {
+      throw new NotFoundException(`Status with ID ${id} not found`);
+    }
+    return status;
+  }
+
+  async updateStatus(projectid: number, id: number, data: UpdateStatusDto) {
+    await this.findOneStatus(projectid, id);
+    return this.prismaService.status.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async removeStatus(projectid: number, id: number) {
+    await this.findOneStatus(projectid, id);
+    return this.prismaService.status.delete({
+      where: { id },
+    });
+  }
+
+  async createCategory(projectid: number, data: CreateCategoryDto) {
+    return this.prismaService.category.create({
+      data: {
+        ...data,
+        projectId: projectid,
+      },
+    });
+  }
+
+  async findAllCategory(projectid: number) {
+    return this.prismaService.category.findMany({
+      where: {
+        projectId: projectid,
+      },
+    });
+  }
+
+  async findOneCategory(projectId: number, id: number) {
+    const category = await this.prismaService.category.findUnique({
+      where: { projectId, id },
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${id} not found`);
+    }
+    return category;
+  }
+
+  async updateCategory(projectId: number, id: number, data: UpdateCategoryDto) {
+    await this.findOneCategory(projectId, id);
+    return this.prismaService.category.update({ where: { id }, data });
+  }
+
+  async removeCategory(projectId: number, id: number) {
+    await this.findOneCategory(projectId, id);
+    return this.prismaService.category.delete({ where: { id } });
+  }
+
+  async createPhase(projectId: number, data: CreatePhaseDto) {
+    const project = await this.prismaService.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    return this.prismaService.phase.create({
+      data: {
+        ...data,
+        projectId,
+      },
+    });
+  }
+
+  async findAllPhases(projectId: number) {
+    return this.prismaService.phase.findMany({
+      where: { projectId },
+    });
+  }
+
+  async findOnePhase(projectId: number, phaseId: number) {
+    const phase = await this.prismaService.phase.findFirst({
+      where: { id: phaseId, projectId },
+    });
+    if (!phase) {
+      throw new NotFoundException(
+        `Phase with ID ${phaseId} not found in Project ${projectId}`,
+      );
+    }
+    return phase;
+  }
+
+  async updatePhase(projectId: number, phaseId: number, data: UpdatePhaseDto) {
+    const existing = await this.prismaService.phase.findFirst({
+      where: { id: phaseId, projectId },
+    });
+    if (!existing) {
+      throw new NotFoundException(
+        `Phase with ID ${phaseId} not found in Project ${projectId}`,
+      );
+    }
+
+    return this.prismaService.phase.update({
+      where: { id: phaseId },
+      data,
+    });
+  }
+
+  async removePhase(projectId: number, phaseId: number) {
+    const existing = await this.prismaService.phase.findFirst({
+      where: { id: phaseId, projectId },
+    });
+    if (!existing) {
+      throw new NotFoundException(
+        `Phase with ID ${phaseId} not found in Project ${projectId}`,
+      );
+    }
+
+    return this.prismaService.phase.delete({
+      where: { id: phaseId },
+    });
+  }
+
+  async assignIssueType(projectId: number, dto: AssignIssueTypeDto) {
+    const member = await this.prismaService.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: dto.userId,
+          projectId: projectId,
+        },
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('ProjectMember not found in this project');
+    }
+    const existingAssign = await this.prismaService.autoAssign.findFirst({
+      where: {
+        assignedTo: member.id,
+        issueType: dto.issueType,
+      },
+    });
+
+    if (!existingAssign) {
+      await this.prismaService.autoAssign.create({
+        data: {
+          assignedTo: member.id,
+          issueType: dto.issueType,
+        },
+      });
+    }
+
+    return {
+      message: `Assigned ${dto.issueType} to user ${dto.userId} in project ${projectId}`,
+    };
+  }
+
+  async getAssigns(projectId: number) {
+    // Get all ProjectMembers of this project
+    const members = await this.prismaService.projectMember.findMany({
+      where: { projectId },
+      include: {
+        AutoAssign: {
+          include: {
+            Assignee: {
+              include: {
+                user: {
+                  select: {
+                    username: true,
+                    avatar: true,
+                    id: true,
+                  },
+                },
+                role: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Collect all AutoAssign records
+    const allAssigns = members.flatMap((m) => m.AutoAssign);
+    return allAssigns;
+  }
+
+  async getAssignById(projectId: number, assignId: number) {
+    const assign = await this.prismaService.autoAssign.findUnique({
+      where: { id: assignId },
+      include: {
+        Assignee: {
+          include: {
+            user: true,
+            project: true,
+          },
+        },
+      },
+    });
+
+    if (!assign || assign.Assignee.projectId !== projectId) {
+      throw new NotFoundException('Assign not found in this project');
+    }
+
+    return assign;
+  }
+
+  async getAssignByIssueType(projectId: number, issueType: ReportIssueType) {
+    return this.prismaService.autoAssign.findFirst({
+      where: {
+        Assignee: {
+          projectId: projectId,
+        },
+        issueType,
+      },
+      include: {
+        Assignee: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateAssign(
+    projectId: number,
+    assignId: number,
+    dto: UpdateAssignDto,
+  ) {
+    const assign = await this.prismaService.autoAssign.findUnique({
+      where: { id: assignId },
+      include: { Assignee: true },
+    });
+
+    const member = await this.prismaService.projectMember.findUnique({
+      where: {
+        userId_projectId: {
+          userId: dto.userId,
+          projectId: projectId,
+        },
+      },
+    });
+
+    if (!assign || assign.Assignee?.projectId !== projectId) {
+      throw new NotFoundException('Assign not found in this project');
+    }
+
+    const updated = await this.prismaService.autoAssign.update({
+      where: { id: assignId },
+      data: {
+        issueType: dto.issueType,
+        assignedTo: member.id,
+      },
+    });
+
+    return updated;
+  }
+
+  async deleteAssign(projectId: number, assignId: number) {
+    const assign = await this.prismaService.autoAssign.findUnique({
+      where: { id: assignId },
+      include: { Assignee: true },
+    });
+
+    if (!assign || assign.Assignee?.projectId !== projectId) {
+      throw new NotFoundException('Assign not found in this project');
+    }
+
+    await this.prismaService.autoAssign.delete({ where: { id: assignId } });
+    return { message: `Deleted assign ${assignId}` };
   }
 }

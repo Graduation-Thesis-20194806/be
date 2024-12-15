@@ -5,6 +5,7 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
 import { Prisma, ProjectRole } from '@prisma/client';
+import axios from 'axios';
 
 @Injectable()
 export class ReportsService {
@@ -19,11 +20,27 @@ export class ReportsService {
     projectid: number,
     reportData: CreateReportDto,
   ) {
-    const { images, ...createReportDto } = reportData;
+    const { images, phaseId, ...createReportDto } = reportData;
+    let phaseIdInput = phaseId;
+    if (!phaseId) {
+      const phase = await this.prismaService.phase.findFirst({
+        where: {
+          projectId: projectid,
+          from: {
+            lte: new Date(),
+          },
+          to: {
+            gte: new Date(),
+          },
+        },
+      });
+      phaseIdInput = phase?.id;
+    }
     const report = await this.prismaService.report.create({
       data: {
         projectId: projectid,
         createdById: user_id,
+        phaseId: phaseIdInput,
         ...createReportDto,
       } as any,
       include: {
@@ -37,6 +54,20 @@ export class ReportsService {
           data: images.map((item) => ({ ...item, reportId: report.id })),
         });
       report.ReportImage = reportImages;
+    }
+    const res = await axios.post(
+      `${this.configService.get<string>('AI_SERVER_URL') ?? 'localhost:8000'}/api/bug-reports/process`,
+      { reportId: report.id },
+    );
+    if (res.data.success) {
+      await this.prismaService.report.update({
+        where: {
+          id: report.id,
+        },
+        data: {
+          isProcessing: true,
+        },
+      });
     }
     return report;
   }
@@ -96,6 +127,7 @@ export class ReportsService {
       status,
       issueType,
       keyword,
+      phaseId,
     } = reportQueryDto;
     const where: Prisma.ReportWhereInput = { projectId };
     if (role === 'owner') where.createdById = user_id;
@@ -119,6 +151,11 @@ export class ReportsService {
     }
     if (issueType) {
       where.issueType = issueType;
+    }
+    if (phaseId) {
+      if (+phaseId == 0) {
+        where.phaseId = null;
+      } else where.phaseId = +phaseId;
     }
     if (keyword) {
       where.OR = [
@@ -228,5 +265,29 @@ export class ReportsService {
         Report: true,
       },
     });
+  }
+
+  async updateReportInternal(report_id: number, reportData: UpdateReportDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { newImages, deleteImages, images, ...updateReportDto } = reportData;
+    if (deleteImages?.length) {
+      await this.prismaService.reportImage.deleteMany({
+        where: {
+          id: {
+            in: deleteImages,
+          },
+        },
+      });
+    }
+    const report = await this.prismaService.report.update({
+      where: {
+        id: report_id,
+      },
+      data: {
+        ...updateReportDto,
+      } as any,
+    });
+    if (!report) return;
+    return report;
   }
 }

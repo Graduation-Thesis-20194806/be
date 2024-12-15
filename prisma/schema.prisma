@@ -83,8 +83,32 @@ model Project {
   Category         Category[]
   Report           Report[]
   Tag              Tag[]
+  Phase            Phase[]
 
   @@map("projects")
+}
+
+model Phase {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  from        DateTime
+  to          DateTime
+  projectId   Int      @map("project_id")
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Report      Report[]
+  Task        Task[]
+
+  @@map("phases")
+}
+
+model AutoAssign {
+  id         Int              @id @default(autoincrement())
+  issueType  ReportIssueType? @map("issue_type")
+  assignedTo Int?             @map("assigned_to")
+  Assignee   ProjectMember?   @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+
+  @@map("auto_assign")
 }
 
 model Role {
@@ -132,6 +156,7 @@ model ProjectMember {
   Folder        Folder[]
   File          File[]
   TaskComment   TaskComment[]
+  AutoAssign    AutoAssign[]
 
   @@unique([userId, projectId])
   @@index([userId, projectId])
@@ -142,7 +167,7 @@ model Task {
   id             Int              @id @default(autoincrement())
   name           String
   description    String           @db.Text
-  estimateTime   Int?             @map("estimate_time")
+  estimateTime   Float?           @map("estimate_time")
   deadline       DateTime?
   priority       Priority?
   isPublic       Boolean          @default(true) @map("is_public")
@@ -150,7 +175,7 @@ model Task {
   status         Status?          @relation(fields: [statusId], references: [id], onDelete: SetNull)
   categoryId     Int?             @map("category_id")
   category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  references     String[]         
+  references     String[]
   createdBy      Int              @map("created_by")
   projectId      Int              @map("project_id")
   ProjectMember  ProjectMember    @relation("CreatedTasks", fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
@@ -161,6 +186,10 @@ model Task {
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
   TaskComment    TaskComment[]
+  reportId       Int?
+  Report         Report?          @relation(fields: [reportId], references: [id], onDelete: SetNull)
+  phaseId        Int?
+  Phase          Phase?           @relation(fields: [phaseId], references: [id], onDelete: SetNull)
 
   @@map("tasks")
 }
@@ -254,6 +283,10 @@ model Report {
   groupId          Int?
   DuplicateGroup   DuplicateGroup?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
   isProcessing     Boolean          @default(false) @map("is_processing")
+  Task             Task[]
+
+  phaseId Int?
+  Phase   Phase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
 
   @@map("reports")
 }

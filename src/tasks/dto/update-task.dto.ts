@@ -101,4 +101,24 @@ export class UpdateTaskDto {
     isArray: true,
   })
   deleteAttachments?: number[];
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+    isArray: true,
+    type: Number,
+  })
+  attachments?: number[];
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  reportId?: number;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  phaseId?: number;
 }

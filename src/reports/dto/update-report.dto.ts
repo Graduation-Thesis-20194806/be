@@ -1,4 +1,4 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiHideProperty, ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateReportDto, CreateReportImageDto } from './create-report.dto';
 import { IsOptional } from 'class-validator';
 import { ReportStatus } from '@prisma/client';
@@ -25,4 +25,14 @@ export class UpdateReportDto extends PartialType(CreateReportDto) {
     required: false,
   })
   status?: ReportStatus;
+
+  @IsOptional()
+  @ApiProperty({
+    required: false,
+  })
+  phaseId?: number;
+
+  @ApiHideProperty()
+  @IsOptional()
+  isProcessing?: boolean;
 }
