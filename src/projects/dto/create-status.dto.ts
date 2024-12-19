@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProjectStatusDto {
@@ -8,4 +8,10 @@ export class CreateProjectStatusDto {
   })
   @IsNotEmpty()
   name: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsOptional()
+  color?: string;
 }

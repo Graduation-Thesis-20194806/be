@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "tasks" ALTER COLUMN "estimate_time" SET DATA TYPE DOUBLE PRECISION;

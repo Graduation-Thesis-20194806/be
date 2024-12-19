@@ -19,6 +19,7 @@ import { ReportListItemEntity } from './entities/report.entity';
 import { ReportFullEntity } from './entities/report-full.entity';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ReportPaginationEntity } from './entities/list-report.entity';
+import { MergeReportDto } from './dto/merge-report.dto';
 
 @ApiTags('Reports')
 @Controller('projects/:projectid/reports')
@@ -89,6 +90,33 @@ export class ReportsController {
   })
   async getMyReport(@Param('id') id: string): Promise<ReportFullEntity> {
     const res = await this.reportsService.getMeOne(+id);
-    return new ReportFullEntity(res);
+    const { DuplicateGroup1, DuplicateGroup2, Task, children, ...rest } = res;
+    const DuplicateGroup = DuplicateGroup1.map((item) => ({
+      level: item.level,
+      id: item.report2.id,
+      name: item.report2.name,
+    }));
+    DuplicateGroup.concat(
+      DuplicateGroup2.map((item) => ({
+        level: item.level,
+        id: item.report1.id,
+        name: item.report1.name,
+      })),
+    );
+
+    return new ReportFullEntity({
+      ...rest,
+      DuplicateGroup,
+      Task: Task.map((item) => ({ ...item, status: item.status?.name })),
+      children,
+    });
+  }
+
+  @Post('me/:id/merge')
+  async mergeReport(
+    @Param('id') id: string,
+    @Body() mergeData: MergeReportDto,
+  ) {
+    return this.reportsService.mergeReport(+id, mergeData);
   }
 }

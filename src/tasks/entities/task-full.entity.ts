@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskListItemEntity } from './task.entity';
 import { FileEntity } from 'src/files/entities/file.entity';
 import { TaskCommentsEntity } from 'src/comments/entities/task-comments.entity';
@@ -8,6 +8,15 @@ export class TaskAttachmentEntity {
     type: FileEntity,
   })
   file: FileEntity;
+}
+
+export class TaskCompactEntity {
+  @ApiProperty()
+  id: number;
+  @ApiProperty()
+  name: string;
+  @ApiPropertyOptional()
+  status: string;
 }
 export class TaskFullEntity extends TaskListItemEntity {
   @ApiProperty({

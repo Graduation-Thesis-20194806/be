@@ -4,8 +4,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
-import { Prisma, ProjectRole } from '@prisma/client';
+import { Prisma, ProjectRole, ReportStatus } from '@prisma/client';
 import axios from 'axios';
+import { MergeReportDto } from './dto/merge-report.dto';
 
 @Injectable()
 export class ReportsService {
@@ -45,7 +46,11 @@ export class ReportsService {
       } as any,
       include: {
         ReportImage: true,
-        ReportComment: true,
+        ReportComment: {
+          include: {
+            createdBy: true,
+          },
+        },
       },
     });
     if (images?.length) {
@@ -79,6 +84,16 @@ export class ReportsService {
   ) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { newImages, deleteImages, images, ...updateReportDto } = reportData;
+    if (updateReportDto.status === ReportStatus.DONE) {
+      const children = await this.prismaService.task.count({
+        where: {
+          reportId: report_id,
+        },
+      });
+      if (children > 0) {
+        return false;
+      }
+    }
     if (deleteImages?.length) {
       await this.prismaService.reportImage.deleteMany({
         where: {
@@ -99,7 +114,11 @@ export class ReportsService {
       } as any,
       include: {
         ReportImage: true,
-        ReportComment: true,
+        ReportComment: {
+          include: {
+            createdBy: true,
+          },
+        },
       },
     });
     if (!report) return;
@@ -122,14 +141,18 @@ export class ReportsService {
       page,
       pageSize,
       role,
-      groupId,
       severity,
       status,
       issueType,
       keyword,
       phaseId,
     } = reportQueryDto;
-    const where: Prisma.ReportWhereInput = { projectId };
+    const where: Prisma.ReportWhereInput = {
+      projectId,
+      parentId: {
+        equals: null,
+      },
+    };
     if (role === 'owner') where.createdById = user_id;
     else if (role === 'assigned') where.assignedTo = user_id;
     else
@@ -172,9 +195,6 @@ export class ReportsService {
           },
         },
       ];
-    }
-    if (groupId) {
-      where.groupId = +groupId;
     }
     const [total, items] = await this.prismaService.$transaction([
       this.prismaService.report.count({
@@ -249,20 +269,45 @@ export class ReportsService {
             username: true,
           },
         },
-      },
-    });
-  }
-  async findDuplicate(id: number) {
-    return this.prismaService.duplicateGroup.findFirst({
-      where: {
-        Report: {
-          some: {
-            id,
+        DuplicateGroup1: {
+          select: {
+            level: true,
+            report2: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
-      },
-      include: {
-        Report: true,
+        DuplicateGroup2: {
+          select: {
+            level: true,
+            report1: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        children: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        Task: {
+          select: {
+            id: true,
+            name: true,
+            status: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -289,5 +334,57 @@ export class ReportsService {
     });
     if (!report) return;
     return report;
+  }
+
+  async mergeReport(report_id: number, mergeData: MergeReportDto) {
+    const { childrenId, type } = mergeData;
+    await this.prismaService.task.updateMany({
+      where: {
+        reportId: childrenId,
+      },
+      data: {
+        reportId: report_id,
+      },
+    });
+    let res;
+    if (type === 'merge') {
+      res = await this.prismaService.report.update({
+        where: {
+          id: childrenId,
+        },
+        data: {
+          parentId: report_id,
+        },
+      });
+    } else {
+      await this.prismaService.report.updateMany({
+        where: {
+          parentId: childrenId,
+        },
+        data: {
+          parentId: report_id,
+        },
+      });
+      res = await this.prismaService.report.delete({
+        where: {
+          id: childrenId,
+        },
+      });
+    }
+    await this.prismaService.duplicateGroup.deleteMany({
+      where: {
+        OR: [
+          {
+            reportId1: report_id,
+            reportId2: childrenId,
+          },
+          {
+            reportId1: childrenId,
+            reportId2: report_id,
+          },
+        ],
+      },
+    });
+    return res;
   }
 }

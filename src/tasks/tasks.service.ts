@@ -4,7 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskQueryDto } from './dto/task-query.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, ReportStatus } from '@prisma/client';
 
 @Injectable()
 export class TasksService {
@@ -134,9 +134,34 @@ export class TasksService {
             name: true,
           },
         },
+        status: {
+          select: {
+            isCloseStatus: true,
+          },
+        },
       },
     });
     if (!task) return;
+    if (task.status.isCloseStatus) {
+      const children = await this.prismaService.task.count({
+        where: {
+          reportId: task.reportId,
+          status: {
+            isCloseStatus: false,
+          },
+        },
+      });
+      if (children == 0) {
+        await this.prismaService.report.update({
+          where: {
+            id: task.reportId,
+          },
+          data: {
+            status: ReportStatus.DONE,
+          },
+        });
+      }
+    }
     if (newAttachments?.length) {
       const taskAttachments =
         await this.prismaService.taskAttachment.createManyAndReturn({

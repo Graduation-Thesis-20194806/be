@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -29,9 +23,9 @@ model InvitationToken {
   token     String   @unique
   userId    Int      @map("user_id")
   projectId Int      @map("project_id")
-  roleId    Int      @map("role_id")
   expiredAt DateTime @map("expired_at")
   createdAt DateTime @default(now()) @map("created_at")
+  roleId    Int      @map("role_id")
 
   @@unique([userId, projectId])
   @@index([userId, projectId])
@@ -60,12 +54,12 @@ model User {
   email          String          @unique
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  Notification   Notification[]
   ProjectMembers ProjectMember[]
   ReportComment  ReportComment[]
   AssigneeReport Report[]        @relation("AssigneeReports")
   CreatedReport  Report[]        @relation("CreatedReports")
   Tag            Tag[]
-  Notification   Notification[]
 
   @@map("users")
 }
@@ -73,19 +67,30 @@ model User {
 model Project {
   id               Int             @id @default(autoincrement())
   name             String
-  roles            Role[]
-  projectMembers   ProjectMember[]
-  projectThumbnail String?         @map("project_thumbnail")
-  description      String          @db.Text
+  description      String
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
-  Status           Status[]
+  projectThumbnail String?         @map("project_thumbnail")
   Category         Category[]
-  Report           Report[]
-  Tag              Tag[]
   Phase            Phase[]
+  projectMembers   ProjectMember[]
+  ProjectDomain    ProjectDomain[]
+  Report           Report[]
+  roles            Role[]
+  Status           Status[]
+  Tag              Tag[]
 
   @@map("projects")
+}
+
+model ProjectDomain {
+  id        Int     @id @default(autoincrement())
+  name      String
+  url       String  @unique
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_urls")
 }
 
 model Phase {
@@ -106,7 +111,7 @@ model AutoAssign {
   id         Int              @id @default(autoincrement())
   issueType  ReportIssueType? @map("issue_type")
   assignedTo Int?             @map("assigned_to")
-  Assignee   ProjectMember?   @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+  Assignee   ProjectMember?   @relation(fields: [assignedTo], references: [id])
 
   @@map("auto_assign")
 }
@@ -116,19 +121,20 @@ model Role {
   category       ProjectRole
   name           String
   projectId      Int             @map("project_id")
-  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   ProjectMembers ProjectMember[]
+  project        Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("roles")
 }
 
 model Status {
-  id        Int      @id @default(autoincrement())
-  name      String
-  projectId Int      @map("project_id")
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  Task      Task[]
-  Report    Report[]
+  id            Int     @id @default(autoincrement())
+  name          String
+  projectId     Int     @map("project_id")
+  color         String  @default("#f1f1f1") @db.Char(7)
+  isCloseStatus Boolean @default(false)
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Task          Task[]
 
   @@map("status")
 }
@@ -137,6 +143,7 @@ model Category {
   id        Int     @id @default(autoincrement())
   name      String
   projectId Int     @map("project_id")
+  color     String  @default("#f1f1f1") @db.Char(7)
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   Task      Task[]
 
@@ -146,17 +153,17 @@ model Category {
 model ProjectMember {
   id            Int           @id @default(autoincrement())
   userId        Int           @map("user_id")
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   roleId        Int?          @map("role_id")
-  role          Role?         @relation(fields: [roleId], references: [id], onDelete: SetNull)
   projectId     Int           @map("project_id")
-  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  TasksCreated  Task[]        @relation("CreatedTasks")
-  TasksAssigned Task[]        @relation("AssignedTasks")
-  Folder        Folder[]
-  File          File[]
-  TaskComment   TaskComment[]
   AutoAssign    AutoAssign[]
+  File          File[]
+  Folder        Folder[]
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role          Role?         @relation(fields: [roleId], references: [id])
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  TaskComment   TaskComment[]
+  TasksAssigned Task[]        @relation("AssignedTasks")
+  TasksCreated  Task[]        @relation("CreatedTasks")
 
   @@unique([userId, projectId])
   @@index([userId, projectId])
@@ -165,31 +172,31 @@ model ProjectMember {
 
 model Task {
   id             Int              @id @default(autoincrement())
-  name           String
-  description    String           @db.Text
+  description    String
   estimateTime   Float?           @map("estimate_time")
   deadline       DateTime?
   priority       Priority?
   isPublic       Boolean          @default(true) @map("is_public")
   statusId       Int?             @map("status_id")
-  status         Status?          @relation(fields: [statusId], references: [id], onDelete: SetNull)
   categoryId     Int?             @map("category_id")
-  category       Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   references     String[]
   createdBy      Int              @map("created_by")
   projectId      Int              @map("project_id")
-  ProjectMember  ProjectMember    @relation("CreatedTasks", fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
   assignedTo     Int?             @map("assigned_to")
-  Assignee       ProjectMember?   @relation("AssignedTasks", fields: [assignedTo], references: [id], onDelete: SetNull)
-  TaskAttachment TaskAttachment[]
   tags           Int[]
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
-  TaskComment    TaskComment[]
+  name           String
   reportId       Int?
-  Report         Report?          @relation(fields: [reportId], references: [id], onDelete: SetNull)
   phaseId        Int?
-  Phase          Phase?           @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  TaskAttachment TaskAttachment[]
+  TaskComment    TaskComment[]
+  Assignee       ProjectMember?   @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  category       Category?        @relation(fields: [categoryId], references: [id])
+  ProjectMember  ProjectMember    @relation("CreatedTasks", fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  Phase          Phase?           @relation(fields: [phaseId], references: [id])
+  Report         Report?          @relation(fields: [reportId], references: [id])
+  status         Status?          @relation(fields: [statusId], references: [id])
 
   @@map("tasks")
 }
@@ -200,14 +207,14 @@ model Folder {
   createdBy     Int           @map("created_by")
   projectId     Int           @map("project_id")
   isPublic      Boolean       @default(true) @map("is_public")
-  projectMember ProjectMember @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
   parentId      Int?          @map("parent_id")
-  parent        Folder?       @relation("FolderSelfReference", fields: [parentId], references: [id], onDelete: Cascade)
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
   tags          Int[]
-  Folder        Folder[]      @relation("FolderSelfReference")
   File          File[]
+  projectMember ProjectMember @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  parent        Folder?       @relation("FolderSelfReference", fields: [parentId], references: [id], onDelete: Cascade)
+  Folder        Folder[]      @relation("FolderSelfReference")
 
   @@map("folder")
 }
@@ -217,13 +224,13 @@ model File {
   name           String
   path           String
   folderId       Int              @map("folder_id")
-  folder         Folder           @relation(fields: [folderId], references: [id], onDelete: Cascade)
   createdBy      Int              @map("created_by")
   projectId      Int              @map("project_id")
-  projectMember  ProjectMember    @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
   tags           Int[]
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
+  projectMember  ProjectMember    @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
+  folder         Folder           @relation(fields: [folderId], references: [id], onDelete: Cascade)
   TaskAttachment TaskAttachment[]
 
   @@map("files")
@@ -232,8 +239,8 @@ model File {
 model TaskAttachment {
   id     Int  @id @default(autoincrement())
   fileId Int  @map("file_id")
-  file   File @relation(fields: [fileId], references: [id], onDelete: Cascade)
   taskId Int  @map("task_id")
+  file   File @relation(fields: [fileId], references: [id], onDelete: Cascade)
   task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@map("task_attachments")
@@ -241,13 +248,13 @@ model TaskAttachment {
 
 model TaskComment {
   id            Int           @id @default(autoincrement())
-  content       String        @db.Text
+  content       String
   createdBy     Int           @map("created_by")
   projectId     Int           @map("project_id")
-  projectMember ProjectMember @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at")
   taskId        Int
+  projectMember ProjectMember @relation(fields: [createdBy, projectId], references: [userId, projectId], onDelete: Cascade)
   task          Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@map("task_comments")
@@ -255,50 +262,50 @@ model TaskComment {
 
 model Report {
   id               Int              @id @default(autoincrement())
-  name             String
   type             ReportType       @default(BUG)
   severity         Severity?
   isPublic         Boolean          @default(true) @map("is_public")
   createdById      Int              @map("created_by_id")
-  createdBy        User             @relation("CreatedReports", fields: [createdById], references: [id], onDelete: Cascade)
   projectId        Int              @map("project_id")
-  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assignedTo       Int?             @map("assigned_to")
-  assignee         User?            @relation("AssigneeReports", fields: [assignedTo], references: [id], onDelete: SetNull)
-  stepsToReproduce String?          @map("steps_to_reproduce") @db.Text
-  expectedBehavior String?          @map("expected_behavior") @db.Text
-  actualResult     String?          @map("actual_result") @db.Text
-  description      String           @db.Text
-  issueType        ReportIssueType? @map("issue_type")
-  url              String           @db.Text
+  description      String
   additionInfo     Json             @map("additionInfo")
-  status           ReportStatus     @default(INIT)
   tags             Int[]
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at")
-  ReportImage      ReportImage[]
-  ReportComment    ReportComment[]
-  Status           Status?          @relation(fields: [statusId], references: [id])
-  statusId         Int?
-  groupId          Int?
-  DuplicateGroup   DuplicateGroup?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  name             String
+  url              String
+  status           ReportStatus     @default(INIT)
+  actualResult     String?          @map("actual_result")
+  expectedBehavior String?          @map("expected_behavior")
+  issueType        ReportIssueType? @map("issue_type")
+  stepsToReproduce String?          @map("steps_to_reproduce")
   isProcessing     Boolean          @default(false) @map("is_processing")
+  phaseId          Int?
+  DuplicateGroup1  DuplicateGroup[] @relation("DuplicateReport1")
+  DuplicateGroup2  DuplicateGroup[] @relation("DuplicateReport2")
+  ReportComment    ReportComment[]
+  ReportImage      ReportImage[]
+  assignee         User?            @relation("AssigneeReports", fields: [assignedTo], references: [id])
+  createdBy        User             @relation("CreatedReports", fields: [createdById], references: [id], onDelete: Cascade)
+  Phase            Phase?           @relation(fields: [phaseId], references: [id])
+  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   Task             Task[]
-
-  phaseId Int?
-  Phase   Phase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  parentId         Int?
+  parent           Report?          @relation("MergeRelation", fields: [parentId], references: [id], onDelete: SetNull)
+  children         Report[]         @relation("MergeRelation")
 
   @@map("reports")
 }
 
 model ReportComment {
   id          Int      @id @default(autoincrement())
-  content     String   @db.Text
+  content     String
   createdById Int      @map("created_by_id")
-  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
   reportId    Int
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
   report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@map("report_comments")
@@ -317,30 +324,33 @@ model ReportImage {
 model Tag {
   id          Int      @id @default(autoincrement())
   projectId   Int      @map("project_id")
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tagType     TagType? @default(PUBLIC)
   createdById Int      @map("created_by_id")
-  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now()) @map("created_at")
   available   Boolean  @default(false)
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("tag")
 }
 
 model Notification {
   id        Int      @id @default(autoincrement())
-  content   String   @db.Text
+  content   String
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
 
 model DuplicateGroup {
-  id          Int      @id @default(autoincrement())
-  description String?  @db.Text
-  Report      Report[]
+  id        Int            @id @default(autoincrement())
+  level     DuplicateLevel @default(LOW)
+  reportId1 Int
+  reportId2 Int
+  report1   Report         @relation("DuplicateReport1", fields: [reportId1], references: [id], onDelete: Cascade)
+  report2   Report         @relation("DuplicateReport2", fields: [reportId2], references: [id], onDelete: Cascade)
 }
 
 enum SystemUserRole {
@@ -350,9 +360,9 @@ enum SystemUserRole {
 }
 
 enum ProjectRole {
-  OWNER
   MEMBER
   GUEST
+  OWNER
 }
 
 enum ReportType {
@@ -401,4 +411,41 @@ enum ReportIssueType {
 enum TokenType {
   REFRESH
   RECOVER
+}
+
+enum DuplicateLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum reportissuetype {
+  UI
+  FUNCTIONAL
+  PERFORMANCE
+  SECURITY
+  NETWORK
+  DATA
+  OTHER
+}
+
+enum reportstatus {
+  INIT
+  CONFIRMING
+  IN_PROCESSING
+  REJECTED
+  DONE
+}
+
+enum reporttype {
+  BUG
+  FEEDBACK
+  WISH
+}
+
+enum severity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
 }

@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateProjectDto } from './dto/create-project';
+import { CreateProjectDto } from './dto/create-project.dto';
 import { Prisma, ProjectRole, ReportIssueType } from '@prisma/client';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -15,6 +15,9 @@ import { CreatePhaseDto } from './dto/create-phase.dto';
 import { UpdatePhaseDto } from './dto/update-phase.dto';
 import { AssignIssueTypeDto } from './dto/assign-issue-type.dto';
 import { UpdateAssignDto } from './dto/update-assign.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateProjectDomainDto } from './dto/create-project-url.dto';
+import { UpdateProjectDomainDto } from './dto/update-project-url.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -26,8 +29,9 @@ export class ProjectsService {
   ) {}
 
   async createProject(user_id: number, createProjectDto: CreateProjectDto) {
+    const { projectDomain, ...rest } = createProjectDto;
     const project = await this.prismaService.project.create({
-      data: { ...createProjectDto },
+      data: { ...rest },
     });
     const role = await this.prismaService.role.create({
       data: {
@@ -43,19 +47,51 @@ export class ProjectsService {
         roleId: role.id,
       },
     });
+    await this.prismaService.status.create({
+      data: {
+        name: 'Done',
+        isCloseStatus: true,
+        projectId: project.id,
+        color: '#b7eb8f',
+      },
+    });
+    if (project && projectDomain?.length) {
+      await this.prismaService.projectDomain.createMany({
+        data: projectDomain.map((item) => ({
+          ...item,
+          projectId: project.id,
+        })),
+      });
+    }
 
     return project;
   }
 
   async findManyOwn(user_id: number, projectQueryDto: ProjectQueryDto) {
-    const { page, pageSize } = projectQueryDto;
-    const query = {
+    const { page, pageSize, keyword } = projectQueryDto;
+    const query: Prisma.ProjectWhereInput = {
       projectMembers: {
         some: {
           userId: user_id,
         },
       },
     };
+    if (keyword) {
+      query.OR = [
+        {
+          name: {
+            contains: keyword,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: keyword,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
     const [total, items] = await this.prismaService.$transaction([
       this.prismaService.project.count({
         where: query,
@@ -77,6 +113,11 @@ export class ProjectsService {
                   name: true,
                 },
               },
+            },
+          },
+          ProjectDomain: {
+            select: {
+              url: true,
             },
           },
           name: true,
@@ -120,6 +161,31 @@ export class ProjectsService {
         },
       },
     });
+  }
+  async updateProject(id: number, dto: UpdateProjectDto) {
+    const project = await this.prismaService.project.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with id ${id} not found`);
+    }
+    return this.prismaService.project.update({
+      where: { id },
+      data: dto,
+    });
+  }
+  async deleteProject(id: number) {
+    const project = await this.prismaService.project.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with id ${id} not found`);
+    }
+    return this.prismaService.project.delete({ where: { id } });
   }
   async getProjectRoles(user_id: number, project_id: number) {
     return this.prismaService.role.findMany({
@@ -582,5 +648,74 @@ export class ProjectsService {
 
     await this.prismaService.autoAssign.delete({ where: { id: assignId } });
     return { message: `Deleted assign ${assignId}` };
+  }
+
+  async createProjectDomain(projectId: number, dto: CreateProjectDomainDto) {
+    const project = await this.prismaService.project.findUnique({
+      where: { id: projectId },
+    });
+    if (!project) {
+      throw new NotFoundException(`Project with id ${projectId} not found`);
+    }
+    return this.prismaService.projectDomain.create({
+      data: { ...dto, projectId },
+    });
+  }
+
+  async findAllProjectDomains(projectId: number) {
+    return this.prismaService.projectDomain.findMany({
+      where: {
+        projectId,
+      },
+    });
+  }
+
+  async findOneProjectDomain(projectId: number, id: number) {
+    const url = await this.prismaService.projectDomain.findUnique({
+      where: { id, projectId },
+    });
+    if (!url) {
+      throw new NotFoundException(`ProjectDomain with id ${id} not found`);
+    }
+    return url;
+  }
+
+  async updateProjectDomain(
+    projectId: number,
+    id: number,
+    dto: UpdateProjectDomainDto,
+  ) {
+    const url = await this.prismaService.projectDomain.findUnique({
+      where: { id, projectId },
+    });
+    if (!url) {
+      throw new NotFoundException(`ProjectDomain with id ${id} not found`);
+    }
+    return this.prismaService.projectDomain.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async deleteProjectDomain(projectId: number, id: number) {
+    const url = await this.prismaService.projectDomain.findUnique({
+      where: { id, projectId },
+    });
+    if (!url) {
+      throw new NotFoundException(`ProjectDomain with id ${id} not found`);
+    }
+    return this.prismaService.projectDomain.delete({ where: { id } });
+  }
+
+  async getProjectByUrl(url: string) {
+    return this.prismaService.project.findFirst({
+      where: {
+        ProjectDomain: {
+          some: {
+            url,
+          },
+        },
+      },
+    });
   }
 }

@@ -11,12 +11,6 @@ export class ReportQueryDto extends PaginateDto {
   @IsOptional()
   @ApiProperty({
     required: false,
-  })
-  groupId?: number;
-
-  @IsOptional()
-  @ApiProperty({
-    required: false,
     enum: Severity,
   })
   severity?: Severity;

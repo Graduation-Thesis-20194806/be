@@ -1,5 +1,6 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern } from '@nestjs/microservices';
+import { DuplicateLevel } from '@prisma/client';
 import { messageType } from 'src/common/constant';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProjectsService } from 'src/projects/projects.service';
@@ -33,30 +34,16 @@ export class RedisController {
     if (data.type === messageType.BUG_DUPLICATE) {
       const { reportId } = data;
       if (!reportId) return;
-      const { groupId, dupReportId } = data;
-      if (groupId) {
-        return await this.prismaService.report.update({
-          where: {
-            id: reportId,
-          },
-          data: {
-            groupId,
-          },
-        });
-      }
-      if (dupReportId) {
-        const dupReport = await this.prismaService.duplicateGroup.create({
-          data: {},
-        });
-        await this.prismaService.report.updateMany({
-          where: {
-            id: {
-              in: [dupReportId, reportId],
-            },
-          },
-          data: {
-            groupId: dupReport.id,
-          },
+      const { dupReportIds } = data;
+      if (dupReportIds?.length) {
+        await this.prismaService.duplicateGroup.createMany({
+          data: dupReportIds.map(
+            (item: { id: number; level: DuplicateLevel }) => ({
+              reportId1: Math.min(item.id, reportId),
+              reportId2: Math.max(item.id, reportId),
+              level: item.level,
+            }),
+          ),
         });
       }
     }

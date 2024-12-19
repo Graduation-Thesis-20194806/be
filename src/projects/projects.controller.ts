@@ -13,7 +13,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto } from './dto/create-project';
+import { CreateProjectDto } from './dto/create-project.dto';
 import { LoggedUserRequest } from 'src/auth/entities/logged-user.entity';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { ProjectPaginateEntity } from './entities/list-project.entity';
@@ -44,6 +44,10 @@ import { CreatePhaseDto } from './dto/create-phase.dto';
 import { PhaseEntity } from './entities/phase.entity';
 import { AssignIssueTypeDto } from './dto/assign-issue-type.dto';
 import { UpdateAssignDto } from './dto/update-assign.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateProjectDomainDto } from './dto/create-project-url.dto';
+import { UpdateProjectDomainDto } from './dto/update-project-url.dto';
+import { ProjectDomainEntity } from './entities/project-domain.entity';
 
 @ApiBearerAuth()
 @ApiTags('Projects')
@@ -100,6 +104,32 @@ export class ProjectsController {
       userRole: res.projectMembers?.find((item) => item.userId == user.id).role,
     });
   }
+
+  @ApiOperation({ summary: 'Update an existing project' })
+  @ApiResponse({
+    status: 200,
+    description: 'Project updated successfully.',
+    type: ProjectEntity,
+  })
+  @ApiResponse({ status: 404, description: 'Project not found.' })
+  @Auth('projects:update-own')
+  @Patch('me/:id')
+  updateProject(
+    @Param('id') id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
+    return this.projectsService.updateProject(+id, updateProjectDto);
+  }
+
+  @ApiOperation({ summary: 'Delete a project' })
+  @ApiResponse({ status: 200, description: 'Project deleted successfully.' })
+  @ApiResponse({ status: 404, description: 'Project not found.' })
+  @Auth('projects:delete-own')
+  @Delete('me/:id')
+  deleteProject(@Param('id') id: string) {
+    return this.projectsService.deleteProject(+id);
+  }
+
   @Auth()
   @Get(':id/roles')
   @ApiResponse({
@@ -497,5 +527,96 @@ export class ProjectsController {
     @Param('assignId', ParseIntPipe) assignId: number,
   ) {
     return this.projectsService.deleteAssign(projectId, assignId);
+  }
+
+  @ApiOperation({ summary: 'Create a new ProjectDomain' })
+  @ApiResponse({
+    status: 201,
+    description: 'ProjectDomain created successfully.',
+    type: ProjectDomainEntity,
+  })
+  @Auth('projects:create-domains')
+  @Post(':projectId/domains')
+  createProjectDomain(
+    @Param('projectId') projectId: string,
+    @Body() createProjectDomainDto: CreateProjectDomainDto,
+  ) {
+    return this.projectsService.createProjectDomain(
+      +projectId,
+      createProjectDomainDto,
+    );
+  }
+
+  @ApiOperation({ summary: 'Get all ProjectDomains' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of ProjectDomains.',
+    isArray: true,
+    type: ProjectDomainEntity,
+  })
+  @Auth('projects:view-domains')
+  @Get(':projectId/domains')
+  findAllProjectDomains(@Param('projectId') projectId: string) {
+    return this.projectsService.findAllProjectDomains(+projectId);
+  }
+
+  @ApiOperation({ summary: 'Get a ProjectDomain by its ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'ProjectDomain found.',
+    type: ProjectDomainEntity,
+  })
+  @ApiResponse({ status: 404, description: 'ProjectDomain not found.' })
+  @Auth('projects:view-domains')
+  @Get(':projectId/domains/:id')
+  findOneProjectDomain(
+    @Param('id') id: string,
+    @Param('projectId') projectId: string,
+  ) {
+    return this.projectsService.findOneProjectDomain(+projectId, +id);
+  }
+
+  @ApiOperation({ summary: 'Update a ProjectDomain' })
+  @ApiResponse({
+    status: 200,
+    description: 'ProjectDomain updated successfully.',
+    type: ProjectDomainEntity,
+  })
+  @ApiResponse({ status: 404, description: 'ProjectDomain not found.' })
+  @Auth('projects:update-domains')
+  @Patch(':projectId/domains/:id')
+  updateProjectDomain(
+    @Param('id') id: string,
+    @Param('projectId') projectId: string,
+    @Body() updateProjectDomainDto: UpdateProjectDomainDto,
+  ) {
+    return this.projectsService.updateProjectDomain(
+      +projectId,
+      +id,
+      updateProjectDomainDto,
+    );
+  }
+
+  @ApiOperation({ summary: 'Delete a ProjectDomain' })
+  @ApiResponse({
+    status: 200,
+    description: 'ProjectDomain deleted successfully.',
+  })
+  @ApiResponse({ status: 404, description: 'ProjectDomain not found.' })
+  @Auth('projects:delete-domains')
+  @Delete(':projectId/domains/:id')
+  deleteProjectDomain(
+    @Param('id') id: string,
+    @Param('projectId') projectId: string,
+  ) {
+    return this.projectsService.deleteProjectDomain(+projectId, +id);
+  }
+
+  @ApiOperation({ summary: 'Get Project by Url' })
+  @ApiResponse({ status: 200, type: ProjectEntity })
+  @Auth('projects:view')
+  @Get('me/by-domain')
+  getProjectByUrl(@Query('domain') url: string) {
+    return this.projectsService.getProjectByUrl(url);
   }
 }

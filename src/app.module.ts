@@ -22,7 +22,6 @@ import { EmailModule } from './email/email.module';
 import { CommentsModule } from './comments/comments.module';
 import { StatisticController } from './statistic/statistic.controller';
 import { StatisticModule } from './statistic/statistic.module';
-import { RedisController } from './redis/redis/redis.controller';
 import { RedisModule } from './redis/redis.module';
 // Import các module khác
 
@@ -73,7 +72,7 @@ import { RedisModule } from './redis/redis.module';
     RedisModule,
     // Các module khác
   ],
-  controllers: [AppController, StatisticController, RedisController],
+  controllers: [AppController, StatisticController],
   providers: [
     AppService,
     PrismaService,

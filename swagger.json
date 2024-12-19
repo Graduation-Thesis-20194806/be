@@ -545,6 +545,12 @@
             "required": false,
             "in": "query",
             "schema": { "type": "number" }
+          },
+          {
+            "name": "keyword",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -611,6 +617,59 @@
           }
         },
         "security": [{ "bearer": [] }],
+        "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "ProjectsController_updateProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProjectDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectEntity" }
+              }
+            }
+          },
+          "401": { "description": "" },
+          "404": { "description": "Project not found." }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Update an existing project",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_deleteProject",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Project deleted successfully." },
+          "401": { "description": "" },
+          "404": { "description": "Project not found." }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Delete a project",
         "tags": ["Projects"]
       }
     },
@@ -1444,6 +1503,201 @@
         "tags": ["Projects"]
       }
     },
+    "/projects/{projectId}/domains": {
+      "post": {
+        "operationId": "ProjectsController_createProjectDomain",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectDomainDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ProjectDomain created successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectDomainEntity" }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Create a new ProjectDomain",
+        "tags": ["Projects"]
+      },
+      "get": {
+        "operationId": "ProjectsController_findAllProjectDomains",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of ProjectDomains.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectDomainEntity"
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Get all ProjectDomains",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectId}/domains/{id}": {
+      "get": {
+        "operationId": "ProjectsController_findOneProjectDomain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProjectDomain found.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectDomainEntity" }
+              }
+            }
+          },
+          "401": { "description": "" },
+          "404": { "description": "ProjectDomain not found." }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Get a ProjectDomain by its ID",
+        "tags": ["Projects"]
+      },
+      "patch": {
+        "operationId": "ProjectsController_updateProjectDomain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectDomainDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ProjectDomain updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectDomainEntity" }
+              }
+            }
+          },
+          "401": { "description": "" },
+          "404": { "description": "ProjectDomain not found." }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Update a ProjectDomain",
+        "tags": ["Projects"]
+      },
+      "delete": {
+        "operationId": "ProjectsController_deleteProjectDomain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "ProjectDomain deleted successfully." },
+          "401": { "description": "" },
+          "404": { "description": "ProjectDomain not found." }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Delete a ProjectDomain",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/me/by-domain": {
+      "get": {
+        "operationId": "ProjectsController_getProjectByUrl",
+        "parameters": [
+          {
+            "name": "domain",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectEntity" }
+              }
+            }
+          },
+          "401": { "description": "" }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Get Project by Url",
+        "tags": ["Projects"]
+      }
+    },
     "/projects/{projectid}/tasks/me": {
       "get": {
         "operationId": "TasksController_listTasks",
@@ -1631,12 +1885,6 @@
             "schema": { "type": "string" }
           },
           {
-            "name": "groupId",
-            "required": false,
-            "in": "query",
-            "schema": { "type": "number" }
-          },
-          {
             "name": "severity",
             "required": false,
             "in": "query",
@@ -1792,6 +2040,29 @@
             }
           }
         },
+        "tags": ["Reports"]
+      }
+    },
+    "/projects/{projectid}/reports/me/{id}/merge": {
+      "post": {
+        "operationId": "ReportsController_mergeReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MergeReportDto" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "" } },
         "tags": ["Reports"]
       }
     },
@@ -2133,7 +2404,7 @@
           "id": { "type": "number" },
           "category": {
             "type": "string",
-            "enum": ["OWNER", "MEMBER", "GUEST"]
+            "enum": ["MEMBER", "GUEST", "OWNER"]
           },
           "name": { "type": "string" },
           "projectId": { "type": "number" }
@@ -2210,7 +2481,7 @@
         "type": "object",
         "properties": {
           "name": { "type": "string" },
-          "category": { "type": "string", "enum": ["OWNER", "MEMBER", "GUEST"] }
+          "category": { "type": "string", "enum": ["MEMBER", "GUEST", "OWNER"] }
         },
         "required": ["name", "category"]
       },
@@ -2245,13 +2516,41 @@
         },
         "required": ["total", "items"]
       },
+      "CreateProjectDomainDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "GitHub" },
+          "url": {
+            "type": "string",
+            "example": "https://github.com/example/project"
+          }
+        },
+        "required": ["name", "url"]
+      },
       "CreateProjectDto": {
         "type": "object",
         "properties": {
           "name": { "type": "string" },
-          "description": { "type": "string" }
+          "description": { "type": "string" },
+          "projectThumbnail": { "type": "string" },
+          "projectDomain": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreateProjectDomainDto" }
+          }
         },
         "required": ["name", "description"]
+      },
+      "UpdateProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "projectThumbnail": { "type": "string" },
+          "projectDomain": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreateProjectDomainDto" }
+          }
+        }
       },
       "CreateRoleDto": {
         "type": "object",
@@ -2287,7 +2586,8 @@
             "type": "string",
             "description": "The name of the status",
             "example": "In Progress"
-          }
+          },
+          "color": { "type": "string" }
         },
         "required": ["name"]
       },
@@ -2295,9 +2595,11 @@
         "type": "object",
         "properties": {
           "id": { "type": "number" },
-          "name": { "type": "string" }
+          "name": { "type": "string" },
+          "color": { "type": "string" },
+          "isCloseStatus": { "type": "boolean" }
         },
-        "required": ["id", "name"]
+        "required": ["id", "name", "color"]
       },
       "UpdateStatusDto": {
         "type": "object",
@@ -2306,7 +2608,8 @@
             "type": "string",
             "description": "The new name of the status",
             "example": "Completed"
-          }
+          },
+          "color": { "type": "string" }
         }
       },
       "CreateCategoryDto": {
@@ -2316,7 +2619,8 @@
             "type": "string",
             "description": "The name of the category",
             "example": "Backend"
-          }
+          },
+          "color": { "type": "string" }
         },
         "required": ["name"]
       },
@@ -2324,9 +2628,10 @@
         "type": "object",
         "properties": {
           "id": { "type": "number" },
-          "name": { "type": "string" }
+          "name": { "type": "string" },
+          "color": { "type": "string" }
         },
-        "required": ["id", "name"]
+        "required": ["id", "name", "color"]
       },
       "UpdateCategoryDto": {
         "type": "object",
@@ -2335,7 +2640,8 @@
             "type": "string",
             "description": "The new name of the category",
             "example": "Frontend"
-          }
+          },
+          "color": { "type": "string" }
         }
       },
       "CreatePhaseDto": {
@@ -2467,6 +2773,25 @@
           "userId": { "type": "number", "example": 10 }
         },
         "required": ["issueType", "userId"]
+      },
+      "ProjectDomainEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "url": { "type": "string" }
+        },
+        "required": ["id", "name", "url"]
+      },
+      "UpdateProjectDomainDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "GitHub" },
+          "url": {
+            "type": "string",
+            "example": "https://github.com/example/project"
+          }
+        }
       },
       "UserCompactEntity": {
         "type": "object",
@@ -2698,7 +3023,6 @@
           "url": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
           "updatedAt": { "format": "date-time", "type": "string" },
-          "groupId": { "type": "number" },
           "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
           "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
           "phaseId": { "type": "number" },
@@ -2811,6 +3135,32 @@
           "reportId"
         ]
       },
+      "ReportDuplicateEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "level": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] }
+        },
+        "required": ["id", "name", "level"]
+      },
+      "ReportCompactEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      },
+      "TaskCompactEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "string" },
+          "status": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      },
       "ReportFullEntity": {
         "type": "object",
         "properties": {
@@ -2847,7 +3197,6 @@
           "url": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
           "updatedAt": { "format": "date-time", "type": "string" },
-          "groupId": { "type": "number" },
           "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
           "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
           "phaseId": { "type": "number" },
@@ -2859,6 +3208,18 @@
           "ReportComment": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ReportCommentsEntity" }
+          },
+          "DuplicateGroup": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportDuplicateEntity" }
+          },
+          "children": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReportCompactEntity" }
+          },
+          "Task": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TaskCompactEntity" }
           }
         },
         "required": [
@@ -2905,6 +3266,14 @@
           },
           "deleteImages": { "type": "array", "items": { "type": "number" } }
         }
+      },
+      "MergeReportDto": {
+        "type": "object",
+        "properties": {
+          "childrenId": { "type": "number" },
+          "type": { "type": "string" }
+        },
+        "required": ["childrenId", "type"]
       },
       "PresignedUrlEntity": {
         "type": "object",

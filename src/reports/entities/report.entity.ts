@@ -61,11 +61,6 @@ export class ReportListItemEntity {
 
   @ApiProperty({
     required: false,
-  })
-  groupId: number;
-
-  @ApiProperty({
-    required: false,
     type: UserCompactEntity,
   })
   assignee?: UserCompactEntity;
