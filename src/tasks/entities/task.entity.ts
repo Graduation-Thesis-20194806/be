@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Priority } from '@prisma/client';
+import { Priority, TaskType } from '@prisma/client';
 import { ProjectMemberEntity } from 'src/projects/entities/project.entity';
 
 export class TaskListItemEntity {
@@ -85,6 +85,12 @@ export class TaskListItemEntity {
     required: false,
   })
   phaseId: number;
+
+  @ApiProperty({
+    required: false,
+    enum: TaskType,
+  })
+  taskType: TaskType;
 
   constructor(partial: Partial<TaskListItemEntity>) {
     Object.assign(this, partial);

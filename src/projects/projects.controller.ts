@@ -619,4 +619,14 @@ export class ProjectsController {
   getProjectByUrl(@Query('domain') url: string) {
     return this.projectsService.getProjectByUrl(url);
   }
+
+  @ApiOperation({ summary: 'Get All Github Project' })
+  @Get('me/github')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getGithubProjects(@Request() { user }: LoggedUserRequest) {}
+
+  @ApiOperation({ summary: 'Sync Project to Github' })
+  @Post(':projectId/github/sync')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  syncGithubProject(@Request() { user }: LoggedUserRequest) {}
 }

@@ -44,22 +44,25 @@ model SystemUser {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  username       String
-  password       String
-  avatar         String?
-  phoneNumber    String          @map("phone_number")
-  address        String?
-  fullname       String
-  email          String          @unique
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
-  Notification   Notification[]
-  ProjectMembers ProjectMember[]
-  ReportComment  ReportComment[]
-  AssigneeReport Report[]        @relation("AssigneeReports")
-  CreatedReport  Report[]        @relation("CreatedReports")
-  Tag            Tag[]
+  id                Int             @id @default(autoincrement())
+  githubId          String?         @unique @map("github_id")
+  githubUsername    String?         @map("github_username")
+  githubAccessToken String?         @map("github_access_token")
+  username          String
+  password          String
+  avatar            String?
+  phoneNumber       String          @map("phone_number")
+  address           String?
+  fullname          String
+  email             String          @unique
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @default(now()) @updatedAt @map("updated_at")
+  Notification      Notification[]
+  ProjectMembers    ProjectMember[]
+  ReportComment     ReportComment[]
+  AssigneeReport    Report[]        @relation("AssigneeReports")
+  CreatedReport     Report[]        @relation("CreatedReports")
+  Tag               Tag[]
 
   @@map("users")
 }
@@ -68,6 +71,9 @@ model Project {
   id               Int             @id @default(autoincrement())
   name             String
   description      String
+  githubId         Int?            @unique @map("github_id")
+  githubName       String?         @map("github_name")
+  githubURL        String?         @map("github_url")
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
   projectThumbnail String?         @map("project_thumbnail")
@@ -189,6 +195,7 @@ model Task {
   name           String
   reportId       Int?
   phaseId        Int?
+  type           TaskType         @default(DEFAULT)
   TaskAttachment TaskAttachment[]
   TaskComment    TaskComment[]
   Assignee       ProjectMember?   @relation("AssignedTasks", fields: [assignedTo], references: [id])
@@ -197,8 +204,16 @@ model Task {
   Phase          Phase?           @relation(fields: [phaseId], references: [id])
   Report         Report?          @relation(fields: [reportId], references: [id])
   status         Status?          @relation(fields: [statusId], references: [id])
+  IssueGithub    IssueGithub?
 
   @@map("tasks")
+}
+
+model IssueGithub {
+  taskId   Int    @unique
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  githubId Int    @unique @map("github_id")
+  url      String
 }
 
 model Folder {
@@ -448,4 +463,9 @@ enum severity {
   LOW
   MEDIUM
   HIGH
+}
+
+enum TaskType {
+  GITHUB
+  DEFAULT
 }

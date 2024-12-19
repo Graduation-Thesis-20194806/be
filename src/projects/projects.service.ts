@@ -18,6 +18,7 @@ import { UpdateAssignDto } from './dto/update-assign.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDomainDto } from './dto/create-project-url.dto';
 import { UpdateProjectDomainDto } from './dto/update-project-url.dto';
+import { GithubService } from 'src/github/github.service';
 
 @Injectable()
 export class ProjectsService {
@@ -26,6 +27,7 @@ export class ProjectsService {
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly githubService: GithubService,
   ) {}
 
   async createProject(user_id: number, createProjectDto: CreateProjectDto) {

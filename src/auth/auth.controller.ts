@@ -4,6 +4,10 @@ import {
   Body,
   UnauthorizedException,
   BadRequestException,
+  Res,
+  Get,
+  Query,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -20,6 +24,11 @@ import {
 } from '@nestjs/swagger';
 import { SwaggerResponse } from 'src/common/decorator/swagger-response.decorator';
 import { LoginReturnEntity } from './entities/login-return.entity';
+import { Response } from 'express';
+import { Auth } from './decorator/auth.decorator';
+import axios from 'axios';
+import { LoggedUserRequest } from './entities/logged-user.entity';
+import { Octokit } from '@octokit/rest';
 
 @Controller('auth')
 export class AuthController {
@@ -79,5 +88,45 @@ export class AuthController {
     };
     ret.user = new UserEntity(user);
     return ret;
+  }
+
+  @Auth()
+  @Get('github/login')
+  async githubLogin(@Res() res: Response) {
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const callbackUrl = process.env.GITHUB_CALLBACK_URL;
+    const scope = 'read:org,repo,user,project';
+    const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      callbackUrl,
+    )}&scope=${encodeURIComponent(scope)}`;
+    return res.redirect(url);
+  }
+
+  @ApiResponse({
+    status: 200,
+  })
+  @Get('github/callback')
+  async githubCallback(
+    @Request() { user }: LoggedUserRequest,
+    @Query('code') code: string,
+    @Res() res: Response,
+  ) {
+    const client_id = process.env.GITHUB_CLIENT_ID;
+    const client_secret = process.env.GITHUB_CLIENT_SECRET;
+
+    const tokenRes = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      { client_id, client_secret, code },
+      { headers: { Accept: 'application/json' } },
+    );
+
+    const { access_token } = tokenRes.data;
+
+    const octokit = new Octokit({ auth: access_token });
+    const userData = await octokit.rest.users.getAuthenticated();
+
+    await this.authService.saveGithubInfo(+user.id, userData, access_token);
+
+    return res.send(200);
   }
 }

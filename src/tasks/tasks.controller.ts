@@ -17,7 +17,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskQueryDto } from './dto/task-query.dto';
 import { TaskListItemEntity } from './entities/task.entity';
 import { TaskFullEntity } from './entities/task-full.entity';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TaskPaginationEntity } from './entities/list-task.entity';
 
 @ApiTags('Tasks')
@@ -89,6 +89,21 @@ export class TasksController {
   })
   async getMyTask(@Param('id') id: string): Promise<TaskFullEntity> {
     const res = await this.tasksService.getMeOne(+id);
+    return new TaskFullEntity(res);
+  }
+
+  @ApiOperation({ summary: 'Create Github Issue' })
+  @Post(':projectId/github/sync')
+  async createGithubIssue(
+    @Request() { user }: LoggedUserRequest,
+    @Body() taskData: CreateTaskDto,
+    @Param('projectid') projectid: string,
+  ) {
+    const res = await this.tasksService.createTask(
+      +user.id,
+      +projectid,
+      taskData,
+    );
     return new TaskFullEntity(res);
   }
 }

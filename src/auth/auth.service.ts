@@ -78,4 +78,15 @@ export class AuthService {
     }
     return this.usersService.findOne(+refreshToken.userId);
   }
+
+  async saveGithubInfo(user_id: number, userData: any, access_token: string) {
+    return this.prismaService.user.update({
+      where: { id: user_id },
+      data: {
+        githubId: userData.data.id.toString(),
+        githubUsername: userData.data.login,
+        githubAccessToken: access_token,
+      },
+    });
+  }
 }

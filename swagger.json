@@ -522,6 +522,30 @@
         "tags": ["Auth"]
       }
     },
+    "/auth/github/login": {
+      "get": {
+        "operationId": "AuthController_githubLogin",
+        "parameters": [],
+        "responses": { "401": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/github/callback": {
+      "get": {
+        "operationId": "AuthController_githubCallback",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "tags": ["Auth"]
+      }
+    },
     "/users/me": {
       "get": {
         "operationId": "UsersController_getMe",
@@ -1698,6 +1722,26 @@
         "tags": ["Projects"]
       }
     },
+    "/projects/me/github": {
+      "get": {
+        "operationId": "ProjectsController_getGithubProjects",
+        "parameters": [],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "summary": "Get All Github Project",
+        "tags": ["Projects"]
+      }
+    },
+    "/projects/{projectId}/github/sync": {
+      "post": {
+        "operationId": "ProjectsController_syncGithubProject",
+        "parameters": [],
+        "responses": { "201": { "description": "" } },
+        "security": [{ "bearer": [] }],
+        "summary": "Sync Project to Github",
+        "tags": ["Projects"]
+      }
+    },
     "/projects/{projectid}/tasks/me": {
       "get": {
         "operationId": "TasksController_listTasks",
@@ -1853,6 +1897,30 @@
             }
           }
         },
+        "tags": ["Tasks"]
+      }
+    },
+    "/projects/{projectid}/tasks/{projectId}/github/sync": {
+      "post": {
+        "operationId": "TasksController_createGithubIssue",
+        "parameters": [
+          {
+            "name": "projectid",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateTaskDto" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "" } },
+        "summary": "Create Github Issue",
         "tags": ["Tasks"]
       }
     },
@@ -2367,6 +2435,21 @@
         },
         "tags": ["Task Comments"]
       }
+    },
+    "/webhook/github": {
+      "post": {
+        "operationId": "WebhookController_handleGithubWebhook",
+        "parameters": [
+          {
+            "name": "x-hub-signature-256",
+            "required": true,
+            "in": "header",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "201": { "description": "" } },
+        "tags": ["Webhook"]
+      }
     }
   },
   "info": {
@@ -2549,8 +2632,10 @@
           "projectDomain": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/CreateProjectDomainDto" }
-          }
-        }
+          },
+          "githubId": { "type": "number" }
+        },
+        "required": ["githubId"]
       },
       "CreateRoleDto": {
         "type": "object",
@@ -2832,7 +2917,8 @@
           "tags": { "type": "array", "items": { "type": "number" } },
           "Report": { "type": "object" },
           "reportId": { "type": "number" },
-          "phaseId": { "type": "number" }
+          "phaseId": { "type": "number" },
+          "taskType": { "type": "string", "enum": ["GITHUB", "DEFAULT"] }
         },
         "required": [
           "id",
@@ -2939,6 +3025,7 @@
           "Report": { "type": "object" },
           "reportId": { "type": "number" },
           "phaseId": { "type": "number" },
+          "taskType": { "type": "string", "enum": ["GITHUB", "DEFAULT"] },
           "TaskAttachment": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/TaskAttachmentEntity" }

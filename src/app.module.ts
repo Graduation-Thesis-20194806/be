@@ -23,6 +23,10 @@ import { CommentsModule } from './comments/comments.module';
 import { StatisticController } from './statistic/statistic.controller';
 import { StatisticModule } from './statistic/statistic.module';
 import { RedisModule } from './redis/redis.module';
+import { GithubService } from './github/github.service';
+import { GithubModule } from './github/github.module';
+import { WebhookModule } from './webhook/webhook.module';
+import { WebhoolController } from './webhool/webhool.controller';
 // Import các module khác
 
 @Module({
@@ -70,9 +74,11 @@ import { RedisModule } from './redis/redis.module';
     CommentsModule,
     StatisticModule,
     RedisModule,
+    GithubModule.forRoot({ isGlobal: true }),
+    WebhookModule,
     // Các module khác
   ],
-  controllers: [AppController, StatisticController],
+  controllers: [AppController, StatisticController, WebhoolController],
   providers: [
     AppService,
     PrismaService,
@@ -81,6 +87,7 @@ import { RedisModule } from './redis/redis.module';
       useClass: JwtAuthGuard,
     },
     { provide: APP_GUARD, useClass: RolesGuard },
+    GithubService,
   ],
 })
 export class AppModule implements NestModule {
