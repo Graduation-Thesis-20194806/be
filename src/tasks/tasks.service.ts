@@ -1,10 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskQueryDto } from './dto/task-query.dto';
-import { Prisma, ReportStatus } from '@prisma/client';
+import { Prisma, TaskStatusCategory, TaskType } from '@prisma/client';
+import { GithubService } from 'src/github/github.service';
 
 @Injectable()
 export class TasksService {
@@ -12,6 +18,7 @@ export class TasksService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
+    private readonly githubService: GithubService,
   ) {}
 
   async createTask(
@@ -19,7 +26,7 @@ export class TasksService {
     projectid: number,
     taskData: CreateTaskDto,
   ) {
-    const { attachments, phaseId, ...createTaskDto } = taskData;
+    const { attachments, phaseId, repoId, ...createTaskDto } = taskData;
     let phaseIdInput = phaseId;
     if (!phaseId) {
       const phase = await this.prismaService.phase.findFirst({
@@ -67,6 +74,7 @@ export class TasksService {
             name: true,
           },
         },
+        IssueGithub: true,
       },
     });
 
@@ -80,6 +88,35 @@ export class TasksService {
         });
       task.TaskAttachment = taskAttachments;
     }
+    const taskType = task.type;
+    if (taskType == TaskType.GITHUB) {
+      const user = await this.prismaService.user.findUnique({
+        where: { id: user_id },
+      });
+      if (!repoId || !user.githubId) throw new BadRequestException();
+      const repo = await this.prismaService.githubRepo.findUnique({
+        where: { id: repoId },
+      });
+      const githubIssue = await this.githubService.createIssue(
+        user.githubAccessToken,
+        repo.owner,
+        repo.name,
+        {
+          title: task.name,
+          body: task.description,
+        },
+      );
+      if (!githubIssue) throw new InternalServerErrorException();
+      const IssueGithub = await this.prismaService.issueGithub.create({
+        data: {
+          repoId,
+          taskId: task.id,
+          number: githubIssue.number,
+          url: githubIssue.html_url,
+        },
+      });
+      task.IssueGithub = IssueGithub;
+    }
     return task;
   }
   async updateTask(
@@ -88,6 +125,11 @@ export class TasksService {
     task_id: number,
     taskData: UpdateTaskDto,
   ) {
+    const oldTask = await this.prismaService.task.findUnique({
+      where: {
+        id: task_id,
+      },
+    });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { newAttachments, deleteAttachments, attachments, ...updateTaskDto } =
       taskData;
@@ -134,33 +176,40 @@ export class TasksService {
             name: true,
           },
         },
+        IssueGithub: {
+          include: { repo: true },
+        },
         status: {
           select: {
-            isCloseStatus: true,
+            category: true,
           },
         },
       },
     });
     if (!task) return;
-    if (task.status.isCloseStatus) {
-      const children = await this.prismaService.task.count({
-        where: {
-          reportId: task.reportId,
-          status: {
-            isCloseStatus: false,
-          },
-        },
+    if (
+      task.type === TaskType.GITHUB &&
+      (oldTask.name !== task.name ||
+        oldTask.description !== task.description ||
+        oldTask.statusId !== task.statusId)
+    ) {
+      const state =
+        task.status.category === TaskStatusCategory.CLOSE ? 'closed' : 'open';
+      const user = await this.prismaService.user.findUnique({
+        where: { id: user_id },
       });
-      if (children == 0) {
-        await this.prismaService.report.update({
-          where: {
-            id: task.reportId,
-          },
-          data: {
-            status: ReportStatus.DONE,
-          },
-        });
-      }
+      if (!user?.githubAccessToken) throw new BadRequestException();
+      await this.githubService.updateIssue(
+        user.githubAccessToken,
+        task.IssueGithub.repo.owner,
+        task.IssueGithub.repo.name,
+        task.IssueGithub.number,
+        {
+          title: task.name,
+          body: task.description,
+          state,
+        },
+      );
     }
     if (newAttachments?.length) {
       const taskAttachments =
@@ -253,6 +302,7 @@ export class TasksService {
               },
             },
           },
+          IssueGithub: true,
         },
       }),
     ]);
@@ -317,6 +367,15 @@ export class TasksService {
             },
           },
         },
+        IssueGithub: true,
+      },
+    });
+  }
+  async deleteTask(user_id: number, task_id: number) {
+    return this.prismaService.task.delete({
+      where: {
+        createdBy: user_id,
+        id: task_id,
       },
     });
   }

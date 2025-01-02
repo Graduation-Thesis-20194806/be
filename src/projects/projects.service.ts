@@ -2,7 +2,12 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
-import { Prisma, ProjectRole, ReportIssueType } from '@prisma/client';
+import {
+  Prisma,
+  ProjectRole,
+  ReportIssueType,
+  TaskStatusCategory,
+} from '@prisma/client';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { nanoid } from 'nanoid';
@@ -19,6 +24,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDomainDto } from './dto/create-project-url.dto';
 import { UpdateProjectDomainDto } from './dto/update-project-url.dto';
 import { GithubService } from 'src/github/github.service';
+import { CreateGithubRepoDto } from './dto/create-github-repo.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -42,20 +48,49 @@ export class ProjectsService {
         category: ProjectRole.OWNER,
       },
     });
-    await this.prismaService.projectMember.create({
+    const member = await this.prismaService.projectMember.create({
       data: {
         projectId: project.id,
         userId: user_id,
         roleId: role.id,
       },
     });
-    await this.prismaService.status.create({
-      data: {
-        name: 'Done',
-        isCloseStatus: true,
-        projectId: project.id,
-        color: '#b7eb8f',
-      },
+    await this.prismaService.status.createMany({
+      data: [
+        {
+          name: 'Done',
+          category: TaskStatusCategory.CLOSE,
+          projectId: project.id,
+          color: '#d0e8c5',
+        },
+        {
+          name: 'Init',
+          category: TaskStatusCategory.OPEN,
+          projectId: project.id,
+          color: '#d2e0fb',
+        },
+        {
+          name: 'Reopen',
+          category: TaskStatusCategory.REOPEN,
+          projectId: project.id,
+          color: '#8eaccd',
+        },
+      ],
+    });
+    const typeList = [
+      ReportIssueType.DATA,
+      ReportIssueType.FUNCTIONAL,
+      ReportIssueType.NETWORK,
+      ReportIssueType.OTHER,
+      ReportIssueType.PERFORMANCE,
+      ReportIssueType.SECURITY,
+      ReportIssueType.UI,
+    ];
+    await this.prismaService.autoAssign.createMany({
+      data: typeList.map((item) => ({
+        issueType: item,
+        assignedTo: member.id,
+      })),
     });
     if (project && projectDomain?.length) {
       await this.prismaService.projectDomain.createMany({
@@ -161,6 +196,7 @@ export class ProjectsService {
             userId: true,
           },
         },
+        GithubRepo: true,
       },
     });
   }
@@ -305,6 +341,10 @@ export class ProjectsService {
   async inviteMember(project_id: number, email: string, roleid: number) {
     const user = await this.prismaService.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        username: true,
+      },
     });
     const project = await this.prismaService.project.findUnique({
       where: { id: project_id },
@@ -717,6 +757,75 @@ export class ProjectsService {
             url,
           },
         },
+      },
+    });
+  }
+
+  async getProjectRepo(projectId: number) {
+    return this.prismaService.githubRepo.findMany({
+      where: {
+        projectId,
+      },
+    });
+  }
+
+  async updateGithubRepo(
+    userId: number,
+    projectId: number,
+    createGithubRepoDto: CreateGithubRepoDto[],
+  ) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+    const res = await this.prismaService.githubRepo.findMany({
+      where: { projectId },
+    });
+    const deleteItems = res.filter(
+      (item) =>
+        !createGithubRepoDto
+          .map((item) => item.githubId)
+          .includes(item.githubId),
+    );
+    await this.prismaService.githubRepo.deleteMany({
+      where: {
+        projectId,
+        githubId: {
+          in: deleteItems.map((item) => item.githubId),
+        },
+      },
+    });
+
+    for (const item of deleteItems) {
+      await this.githubService.removeWebhook(
+        user.githubAccessToken,
+        item.owner,
+        item.name,
+        item.hookId,
+      );
+    }
+
+    const oldItems = res.map((item) => item.githubId);
+    const newItems = createGithubRepoDto.filter(
+      (item) => !oldItems.includes(item.githubId),
+    );
+    for (const item of newItems) {
+      await this.githubService.addWebhook(
+        user.githubAccessToken,
+        item.owner,
+        item.name,
+        ['issues'],
+      );
+    }
+    return this.prismaService.githubRepo.createMany({
+      data: newItems.map((item) => ({ ...item, projectId })),
+    });
+  }
+
+  async findOneGithubRepo(projectId: number, repoId: number) {
+    return this.prismaService.githubRepo.findFirst({
+      where: {
+        id: repoId,
+        projectId,
       },
     });
   }

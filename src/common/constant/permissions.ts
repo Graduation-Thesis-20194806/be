@@ -7,6 +7,7 @@ export default {
     reports: ['add', 'update-own', 'delete-own', 'view'],
     'task-comments': ['add', 'update-own', 'delete-own', 'view'],
     'report-comments': ['add', 'update-own', 'delete-own', 'view'],
+    repos: ['view'],
   },
   [ProjectRole.GUEST]: {
     projects: ['view', 'view-domains'],

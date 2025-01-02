@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { TaskStatusCategory } from '@prisma/client';
 
 export class StatusEntity {
   @ApiProperty()
@@ -7,6 +8,8 @@ export class StatusEntity {
   name: string;
   @ApiProperty()
   color?: string;
-  @ApiPropertyOptional()
-  isCloseStatus?: boolean;
+  @ApiPropertyOptional({
+    enum: TaskStatusCategory,
+  })
+  category?: boolean;
 }

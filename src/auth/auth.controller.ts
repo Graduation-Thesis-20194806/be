@@ -91,15 +91,20 @@ export class AuthController {
   }
 
   @Auth()
+  @ApiResponse({
+    type: String,
+    status: 200,
+  })
   @Get('github/login')
-  async githubLogin(@Res() res: Response) {
+  async githubLogin(@Request() { user }: LoggedUserRequest) {
+    await this.authService.deleteGithubInfo(+user.id);
     const clientId = process.env.GITHUB_CLIENT_ID;
     const callbackUrl = process.env.GITHUB_CALLBACK_URL;
     const scope = 'read:org,repo,user,project';
     const url = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
       callbackUrl,
     )}&scope=${encodeURIComponent(scope)}`;
-    return res.redirect(url);
+    return url;
   }
 
   @ApiResponse({
@@ -111,6 +116,10 @@ export class AuthController {
     @Query('code') code: string,
     @Res() res: Response,
   ) {
+    const userGithubData = await this.usersService.findOne(+user.id);
+    if (userGithubData.githubId) {
+      return res.sendStatus(200);
+    }
     const client_id = process.env.GITHUB_CLIENT_ID;
     const client_secret = process.env.GITHUB_CLIENT_SECRET;
 
@@ -121,12 +130,13 @@ export class AuthController {
     );
 
     const { access_token } = tokenRes.data;
+    if (!access_token) return res.sendStatus(400);
 
     const octokit = new Octokit({ auth: access_token });
     const userData = await octokit.rest.users.getAuthenticated();
 
     await this.authService.saveGithubInfo(+user.id, userData, access_token);
 
-    return res.send(200);
+    return res.sendStatus(200);
   }
 }

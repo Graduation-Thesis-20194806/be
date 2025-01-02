@@ -57,7 +57,6 @@ model User {
   email             String          @unique
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @default(now()) @updatedAt @map("updated_at")
-  Notification      Notification[]
   ProjectMembers    ProjectMember[]
   ReportComment     ReportComment[]
   AssigneeReport    Report[]        @relation("AssigneeReports")
@@ -71,9 +70,8 @@ model Project {
   id               Int             @id @default(autoincrement())
   name             String
   description      String
-  githubId         Int?            @unique @map("github_id")
-  githubName       String?         @map("github_name")
-  githubURL        String?         @map("github_url")
+  githubOrgId      Int?            @map("github_org_id")
+  githubOrgName    String?         @map("github_org_name")
   createdAt        DateTime        @default(now()) @map("created_at")
   updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at")
   projectThumbnail String?         @map("project_thumbnail")
@@ -85,8 +83,22 @@ model Project {
   roles            Role[]
   Status           Status[]
   Tag              Tag[]
+  GithubRepo       GithubRepo[]
 
   @@map("projects")
+}
+
+model GithubRepo {
+  id          Int           @id @default(autoincrement())
+  githubId    String        @map("github_id")
+  name        String
+  hookId      Int?          @map("hook_id")
+  owner       String
+  projectId   Int           @map("project_id")
+  Project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  IssueGithub IssueGithub[]
+
+  @@map("github_repo")
 }
 
 model ProjectDomain {
@@ -134,13 +146,13 @@ model Role {
 }
 
 model Status {
-  id            Int     @id @default(autoincrement())
-  name          String
-  projectId     Int     @map("project_id")
-  color         String  @default("#f1f1f1") @db.Char(7)
-  isCloseStatus Boolean @default(false)
-  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  Task          Task[]
+  id        Int                @id @default(autoincrement())
+  name      String
+  projectId Int                @map("project_id")
+  color     String             @default("#f1f1f1") @db.Char(7)
+  category  TaskStatusCategory @default(CUSTOM)
+  project   Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Task      Task[]
 
   @@map("status")
 }
@@ -157,19 +169,20 @@ model Category {
 }
 
 model ProjectMember {
-  id            Int           @id @default(autoincrement())
-  userId        Int           @map("user_id")
-  roleId        Int?          @map("role_id")
-  projectId     Int           @map("project_id")
+  id            Int            @id @default(autoincrement())
+  userId        Int            @map("user_id")
+  roleId        Int?           @map("role_id")
+  projectId     Int            @map("project_id")
   AutoAssign    AutoAssign[]
   File          File[]
   Folder        Folder[]
-  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  role          Role?         @relation(fields: [roleId], references: [id])
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role          Role?          @relation(fields: [roleId], references: [id])
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   TaskComment   TaskComment[]
-  TasksAssigned Task[]        @relation("AssignedTasks")
-  TasksCreated  Task[]        @relation("CreatedTasks")
+  TasksAssigned Task[]         @relation("AssignedTasks")
+  TasksCreated  Task[]         @relation("CreatedTasks")
+  Notification  Notification[]
 
   @@unique([userId, projectId])
   @@index([userId, projectId])
@@ -210,10 +223,14 @@ model Task {
 }
 
 model IssueGithub {
-  taskId   Int    @unique
-  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  githubId Int    @unique @map("github_id")
-  url      String
+  taskId Int        @unique @map("task_id")
+  task   Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  repoId Int        @map("repo_id")
+  repo   GithubRepo @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  url    String
+  number Int
+
+  @@map("issues_github")
 }
 
 model Folder {
@@ -288,6 +305,7 @@ model Report {
   tags             Int[]
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at")
+  closedAt         DateTime?        @map("closed_at")
   name             String
   url              String
   status           ReportStatus     @default(INIT)
@@ -350,11 +368,13 @@ model Tag {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
-  content   String
-  userId    Int
-  createdAt DateTime @default(now()) @map("created_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int           @id @default(autoincrement())
+  content       Json
+  createdAt     DateTime      @default(now()) @map("created_at")
+  projectId     Int           @map("project_id")
+  userId        Int           @map("user_id")
+  ProjectMember ProjectMember @relation(fields: [userId, projectId], references: [userId, projectId], onDelete: Cascade)
+  isSeen        Boolean       @default(false) @map("is_seen")
 
   @@map("notifications")
 }
@@ -408,9 +428,11 @@ enum TagType {
 enum ReportStatus {
   INIT
   CONFIRMING
+  CONFIRMED
   IN_PROCESSING
   REJECTED
   DONE
+  REOPEN
 }
 
 enum ReportIssueType {
@@ -447,9 +469,11 @@ enum reportissuetype {
 enum reportstatus {
   INIT
   CONFIRMING
+  CONFIRMED
   IN_PROCESSING
   REJECTED
   DONE
+  REOPEN
 }
 
 enum reporttype {
@@ -468,4 +492,11 @@ enum severity {
 enum TaskType {
   GITHUB
   DEFAULT
+}
+
+enum TaskStatusCategory {
+  OPEN
+  CLOSE
+  REOPEN
+  CUSTOM
 }

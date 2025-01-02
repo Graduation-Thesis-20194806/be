@@ -1,5 +1,4 @@
-import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RoleEntity } from './role.entity';
 
 export class UserCompactEntity {
@@ -42,9 +41,11 @@ export class UserEntity {
   @ApiProperty()
   username: string;
 
-  @ApiHideProperty()
-  @Exclude()
-  password: string;
+  @ApiPropertyOptional()
+  githubId?: string;
+
+  @ApiPropertyOptional()
+  githubUsername?: string;
 
   constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);

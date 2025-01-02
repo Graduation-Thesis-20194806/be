@@ -4,9 +4,19 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
-import { Prisma, ProjectRole, ReportStatus } from '@prisma/client';
+import {
+  Prisma,
+  ProjectRole,
+  ReportStatus,
+  TaskStatusCategory,
+} from '@prisma/client';
 import axios from 'axios';
 import { MergeReportDto } from './dto/merge-report.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import {
+  NotiAction,
+  NotiEntity,
+} from 'src/notifications/entities/notifications.entity';
 
 @Injectable()
 export class ReportsService {
@@ -14,6 +24,7 @@ export class ReportsService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   async createReport(
@@ -60,20 +71,52 @@ export class ReportsService {
         });
       report.ReportImage = reportImages;
     }
-    const res = await axios.post(
-      `${this.configService.get<string>('AI_SERVER_URL') ?? 'localhost:8000'}/api/bug-reports/process`,
-      { reportId: report.id },
-    );
-    if (res.data.success) {
-      await this.prismaService.report.update({
-        where: {
-          id: report.id,
-        },
-        data: {
-          isProcessing: true,
-        },
-      });
+    try {
+      const res = await axios.post(
+        `${this.configService.get<string>('AI_SERVER_URL') ?? 'localhost:8000'}/api/bug-reports/process`,
+        { reportId: report.id },
+      );
+      if (res.data.success) {
+        await this.prismaService.report.update({
+          where: {
+            id: report.id,
+          },
+          data: {
+            isProcessing: true,
+          },
+        });
+      }
+    } catch (e) {
+      console.log(e);
     }
+    const owner = await this.prismaService.projectMember.findFirst({
+      where: { role: { category: ProjectRole.OWNER } },
+    });
+    const user = await this.prismaService.user.findUnique({
+      where: { id: user_id },
+      select: {
+        username: true,
+      },
+    });
+    await this.notificationService.create(
+      {
+        userId: owner.userId,
+        projectId: projectid,
+        content: {
+          subject: {
+            id: user_id,
+            name: user.username,
+          },
+          action: NotiAction.CREAT,
+          object: {
+            id: report.id,
+            name: report.name,
+          },
+          objectEntity: NotiEntity.REPORT,
+        },
+      },
+      [owner.userId],
+    );
     return report;
   }
   async updateReport(
@@ -82,17 +125,27 @@ export class ReportsService {
     report_id: number,
     reportData: UpdateReportDto,
   ) {
+    // const report = await this.prismaService.report.findUnique({
+    //   where: { id: report_id },
+    // });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { newImages, deleteImages, images, ...updateReportDto } = reportData;
+    let isDone = false;
     if (updateReportDto.status === ReportStatus.DONE) {
       const children = await this.prismaService.task.count({
         where: {
           reportId: report_id,
+          status: {
+            category: {
+              not: TaskStatusCategory.CLOSE,
+            },
+          },
         },
       });
       if (children > 0) {
-        return false;
+        return;
       }
+      isDone = true;
     }
     if (deleteImages?.length) {
       await this.prismaService.reportImage.deleteMany({
@@ -107,10 +160,30 @@ export class ReportsService {
       where: {
         id: report_id,
         projectId: projectid,
-        createdById: user_id,
+        OR: [
+          {
+            createdById: user_id,
+          },
+          {
+            assignedTo: user_id,
+          },
+          {
+            project: {
+              projectMembers: {
+                some: {
+                  userId: user_id,
+                  role: {
+                    category: ProjectRole.OWNER,
+                  },
+                },
+              },
+            },
+          },
+        ],
       },
       data: {
         ...updateReportDto,
+        closedAt: isDone ? new Date() : undefined,
       } as any,
       include: {
         ReportImage: true,
@@ -121,6 +194,7 @@ export class ReportsService {
         },
       },
     });
+    console.log(report);
     if (!report) return;
     if (newImages?.length) {
       const reportImages =
@@ -223,14 +297,33 @@ export class ReportsService {
         },
       }),
     ]);
+    const result = [];
+    for (const item of items) {
+      if (item.status !== ReportStatus.IN_PROCESSING) {
+        result.push({ ...item, isClosable: false });
+      } else {
+        const tasks = await this.prismaService.task.findMany({
+          where: {
+            projectId: projectId,
+            reportId: item.id,
+            status: {
+              category: {
+                not: TaskStatusCategory.CLOSE,
+              },
+            },
+          },
+        });
+        result.push({ ...item, isClosable: !!tasks?.length });
+      }
+    }
     return {
       total,
-      items,
+      items: result,
     };
   }
 
   async getMeOne(report_id: number) {
-    return this.prismaService.report.findUnique({
+    const report = await this.prismaService.report.findUnique({
       where: {
         id: report_id,
       },
@@ -310,6 +403,22 @@ export class ReportsService {
         },
       },
     });
+    if (report.status === ReportStatus.IN_PROCESSING) {
+      const tasks = await this.prismaService.task.findMany({
+        where: {
+          projectId: report.projectId,
+          reportId: report.id,
+          status: {
+            category: {
+              not: TaskStatusCategory.CLOSE,
+            },
+          },
+        },
+      });
+      return { ...report, isClosable: !!tasks?.length };
+    } else {
+      return { ...report, isClosable: false };
+    }
   }
 
   async updateReportInternal(report_id: number, reportData: UpdateReportDto) {
@@ -386,5 +495,14 @@ export class ReportsService {
       },
     });
     return res;
+  }
+
+  async deleteReport(user_id: number, report_id: number) {
+    return this.prismaService.report.delete({
+      where: {
+        createdById: user_id,
+        id: report_id,
+      },
+    });
   }
 }

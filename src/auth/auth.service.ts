@@ -89,4 +89,14 @@ export class AuthService {
       },
     });
   }
+  async deleteGithubInfo(user_id: number) {
+    return this.prismaService.user.update({
+      where: { id: user_id },
+      data: {
+        githubId: null,
+        githubUsername: null,
+        githubAccessToken: null,
+      },
+    });
+  }
 }

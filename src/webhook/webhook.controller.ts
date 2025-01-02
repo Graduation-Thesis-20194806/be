@@ -12,7 +12,10 @@ import { Request, Response } from 'express';
 import * as crypto from 'crypto';
 import { GithubService } from '../github/github.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Public } from 'src/auth/decorator/public-guard.decorator';
+import { Status, TaskStatusCategory } from '@prisma/client';
 
+@Public()
 @Controller('webhook')
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
@@ -39,36 +42,25 @@ export class WebhookController {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
-    const rawBody = (req as any).rawBody;
+    const rawBody = req.body as Buffer;
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(rawBody);
+    const digest = `sha256=${hmac.digest('hex')}`;
 
-    // Compute the signature
-    const computedSignature = `sha256=${crypto.createHmac('sha256', secret).update(rawBody).digest('hex')}`;
-
-    // Compare signatures
-    if (
-      !crypto.timingSafeEqual(
-        Buffer.from(computedSignature),
-        Buffer.from(signature256),
-      )
-    ) {
-      this.logger.warn('Invalid signature.');
-      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    if (!signature256 || !this.verifySignature(digest, signature256)) {
+      throw new HttpException('Invalid signature.', HttpStatus.UNAUTHORIZED);
     }
 
     const event = req.headers['x-github-event'] as string;
-    const payload = req.body;
+    const payload = JSON.parse(rawBody.toString('utf8'));
 
     this.logger.log(`Received GitHub event: ${event}`);
 
     try {
       switch (event) {
-        case 'project':
-          await this.handleProjectEvent(payload);
-          break;
         case 'issues':
           await this.handleIssueEvent(payload);
           break;
-        // Add more cases as needed
         default:
           this.logger.warn(`Unhandled event type: ${event}`);
       }
@@ -80,56 +72,71 @@ export class WebhookController {
     }
   }
 
-  /**
-   * Handle project-related events.
-   * @param payload The webhook payload.
-   */
-  private async handleProjectEvent(payload: any) {
-    const action = payload.action;
-    const project = payload.project;
-
-    this.logger.log(
-      `Handling project event: ${action} for project ID ${project.id}`,
-    );
-
-    if (action === 'created' || action === 'edited') {
-      // Upsert Project
-      await this.prismaService.project.upsert({
-        where: { githubId: project.id },
-        update: {
-          githubId: project.id,
-          githubName: project.name,
-          githubURL: project.html_url,
-        },
-        create: {
-          githubId: project.id,
-          name: project.name,
-          description: project.body || '',
-          githubURL: project.html_url,
-          githubName: project.name,
-        },
-      });
-
-      this.logger.log(`Project ${project.name} has been ${action}d.`);
+  private verifySignature(digest: string, signatureHeader: string): boolean {
+    const signatureBuffer = Buffer.from(signatureHeader);
+    const digestBuffer = Buffer.from(digest);
+    if (signatureBuffer.length !== digestBuffer.length) {
+      return false;
     }
-
-    // Handle other actions like 'deleted' if needed
+    return crypto.timingSafeEqual(signatureBuffer, digestBuffer);
   }
-
-  /**
-   * Handle issue-related events.
-   * @param payload The webhook payload.
-   */
   private async handleIssueEvent(payload: any) {
     const action = payload.action;
     const issue = payload.issue;
-
-    this.logger.log(`Handling issue event: ${action} for issue ID ${issue.id}`);
-
-    if (action === 'opened' || action === 'edited') {
-      this.logger.log(`Issue "${issue.title}" has been ${action}d.`);
+    this.logger.log(
+      `Handling issues event, action: ${action}, issue: ${issue.html_url}`,
+    );
+    const repository = payload.repository;
+    const task = await this.prismaService.task.findFirst({
+      where: {
+        IssueGithub: {
+          repo: {
+            githubId: repository.id.toString(),
+          },
+          number: issue.number,
+        },
+      },
+    });
+    if (!task) return;
+    let status_data: Status;
+    const data = {} as any;
+    switch (action) {
+      case 'reopened':
+        status_data = await this.prismaService.status.findFirst({
+          where: {
+            projectId: task.projectId,
+            category: TaskStatusCategory.REOPEN,
+          },
+        });
+        data.statusId = status_data.id;
+        break;
+      case 'closed':
+        status_data = await this.prismaService.status.findFirst({
+          where: {
+            projectId: task.projectId,
+            category: TaskStatusCategory.CLOSE,
+          },
+        });
+        data.statusId = status_data.id;
+        break;
+      case 'deleted':
+        await this.prismaService.issueGithub.delete({
+          where: {
+            taskId: task.id,
+            number: issue.number,
+          },
+        });
+        break;
+      case 'edited':
+        data.name = issue.title;
+        data.description = issue.body;
+        break;
+      default:
+        return;
     }
-
-    // Handle other actions like 'closed' if needed
+    await this.prismaService.task.update({
+      where: { id: task.id },
+      data,
+    });
   }
 }

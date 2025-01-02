@@ -2,6 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Priority, TaskType } from '@prisma/client';
 import { ProjectMemberEntity } from 'src/projects/entities/project.entity';
 
+export class IssueGithubEntity {
+  @ApiProperty()
+  url: string;
+}
 export class TaskListItemEntity {
   @ApiProperty()
   id: number;
@@ -10,6 +14,9 @@ export class TaskListItemEntity {
 
   @ApiProperty()
   description: string;
+
+  @ApiProperty()
+  createdBy: number;
 
   @ApiProperty({
     required: false,
@@ -84,13 +91,19 @@ export class TaskListItemEntity {
   @ApiProperty({
     required: false,
   })
-  phaseId: number;
+  phaseId?: number;
 
   @ApiProperty({
     required: false,
     enum: TaskType,
   })
-  taskType: TaskType;
+  taskType?: TaskType;
+
+  @ApiProperty({
+    required: false,
+    type: IssueGithubEntity,
+  })
+  IssueGithub: IssueGithubEntity;
 
   constructor(partial: Partial<TaskListItemEntity>) {
     Object.assign(this, partial);

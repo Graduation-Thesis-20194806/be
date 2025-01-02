@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ConfigService } from '@nestjs/config';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +17,10 @@ export class UsersService {
     const res = await this.prismaService.user.findUnique({
       where: {
         email: createUserDto.email,
+      },
+      select: {
+        password: false,
+        githubAccessToken: false,
       },
     });
     if (!res) {
@@ -32,16 +36,40 @@ export class UsersService {
     return null;
   }
 
-  async findUserByEmail(email: string): Promise<User | null> {
-    return this.prismaService.user.findUnique({
+  async findUserByEmail(email: string) {
+    const res = await this.prismaService.user.findUnique({
       where: { email },
     });
+    delete res.githubAccessToken;
+    return res;
   }
-  findOne(id: number) {
+  async findOne(id: number) {
+    const res = await this.prismaService.user.findFirst({
+      where: {
+        id: id,
+      },
+    });
+    if (res) {
+      delete res.password;
+      delete res.githubAccessToken;
+    }
+    return res;
+  }
+
+  async findOneReturnFull(id: number) {
     return this.prismaService.user.findFirst({
       where: {
         id: id,
       },
+    });
+  }
+
+  async updateUser(id: number, data: UpdateUserDto) {
+    return this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data,
     });
   }
 }

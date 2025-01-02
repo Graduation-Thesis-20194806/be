@@ -5,6 +5,7 @@ import { PrismaClientExceptionFilter } from './common/filter/prisma-client-excep
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const logger = new Logger('main');
@@ -43,6 +44,7 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+  app.use('/webhook/github', bodyParser.raw({ type: '*/*' }));
   if (configService.get<boolean>('ENABLE_SWAGGER')) {
     const swgConfig = new DocumentBuilder()
       .setTitle('THESIS')

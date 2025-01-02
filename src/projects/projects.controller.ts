@@ -17,7 +17,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { LoggedUserRequest } from 'src/auth/entities/logged-user.entity';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { ProjectPaginateEntity } from './entities/list-project.entity';
-import { ProjectEntity } from './entities/project.entity';
+import { GithubRepoEntity, ProjectEntity } from './entities/project.entity';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -48,13 +48,20 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDomainDto } from './dto/create-project-url.dto';
 import { UpdateProjectDomainDto } from './dto/update-project-url.dto';
 import { ProjectDomainEntity } from './entities/project-domain.entity';
+import { GithubService } from 'src/github/github.service';
+import { UsersService } from 'src/users/users.service';
+import { UpdateReposDto } from './dto/update-repos.dto';
 
 @ApiBearerAuth()
 @ApiTags('Projects')
 @Controller('projects')
 export class ProjectsController {
   private logger = new Logger(ProjectsController.name);
-  constructor(private projectsService: ProjectsService) {}
+  constructor(
+    private projectsService: ProjectsService,
+    private githubService: GithubService,
+    private userService: UsersService,
+  ) {}
   @Get('me')
   @ApiResponse({
     status: 200,
@@ -620,13 +627,46 @@ export class ProjectsController {
     return this.projectsService.getProjectByUrl(url);
   }
 
-  @ApiOperation({ summary: 'Get All Github Project' })
-  @Get('me/github')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getGithubProjects(@Request() { user }: LoggedUserRequest) {}
+  @Auth('repo:view')
+  @ApiOperation({ summary: 'Get Project Repo' })
+  @ApiResponse({
+    type: GithubRepoEntity,
+    isArray: true,
+  })
+  @Get(':projectId/github/repo')
+  getProjectRepos(@Param('projectId') projectId: string) {
+    return this.projectsService.getProjectRepo(+projectId);
+  }
 
-  @ApiOperation({ summary: 'Sync Project to Github' })
-  @Post(':projectId/github/sync')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  syncGithubProject(@Request() { user }: LoggedUserRequest) {}
+  @Post(':projectId/github/repo')
+  @ApiOperation({ summary: 'Create GitHub Repo' })
+  @ApiResponse({
+    status: 201,
+    description: 'The repo has been successfully created.',
+  })
+  async createGithubRepo(
+    @Request() { user }: LoggedUserRequest,
+    @Param('projectId') projectId: string,
+    @Body() createGithubRepoDto: UpdateReposDto,
+  ) {
+    return this.projectsService.updateGithubRepo(
+      +user.id,
+      +projectId,
+      createGithubRepoDto.repos,
+    );
+  }
+
+  @Get(':projectId/github/repo/:repoId')
+  @ApiOperation({ summary: 'Get a single GitHub Repo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the specified GitHub repo.',
+    type: GithubRepoEntity,
+  })
+  async findOneGithubRepo(
+    @Param('projectId') projectId: string,
+    @Param('repoId') repoId: string,
+  ) {
+    return this.projectsService.findOneGithubRepo(+projectId, +repoId);
+  }
 }

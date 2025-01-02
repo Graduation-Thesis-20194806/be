@@ -80,6 +80,9 @@ export class ReportListItemEntity {
   })
   isProcessing?: boolean;
 
+  @ApiProperty()
+  isClosable?: boolean;
+
   constructor(partial: Partial<ReportListItemEntity>) {
     Object.assign(this, partial);
   }

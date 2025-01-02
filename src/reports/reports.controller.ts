@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Logger,
@@ -118,5 +119,13 @@ export class ReportsController {
     @Body() mergeData: MergeReportDto,
   ) {
     return this.reportsService.mergeReport(+id, mergeData);
+  }
+
+  @Delete('me/:id')
+  async deleteReport(
+    @Request() { user }: LoggedUserRequest,
+    @Param('id') id: string,
+  ) {
+    return this.reportsService.deleteReport(+user.id, +id);
   }
 }

@@ -26,7 +26,9 @@ import { RedisModule } from './redis/redis.module';
 import { GithubService } from './github/github.service';
 import { GithubModule } from './github/github.module';
 import { WebhookModule } from './webhook/webhook.module';
-import { WebhoolController } from './webhool/webhool.controller';
+import { NotificationsModule } from './notifications/notifications.module';
+import { NotificationsService } from './notifications/notifications.service';
+import { NotificationsGateway } from './notifications/notifications.gateway';
 // Import các module khác
 
 @Module({
@@ -76,9 +78,10 @@ import { WebhoolController } from './webhool/webhool.controller';
     RedisModule,
     GithubModule.forRoot({ isGlobal: true }),
     WebhookModule,
+    NotificationsModule.forRoot({ isGlobal: true }),
     // Các module khác
   ],
-  controllers: [AppController, StatisticController, WebhoolController],
+  controllers: [AppController, StatisticController],
   providers: [
     AppService,
     PrismaService,
@@ -88,6 +91,8 @@ import { WebhoolController } from './webhool/webhool.controller';
     },
     { provide: APP_GUARD, useClass: RolesGuard },
     GithubService,
+    NotificationsService,
+    NotificationsGateway,
   ],
 })
 export class AppModule implements NestModule {

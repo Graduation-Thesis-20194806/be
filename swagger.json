@@ -526,7 +526,15 @@
       "get": {
         "operationId": "AuthController_githubLogin",
         "parameters": [],
-        "responses": { "401": { "description": "" } },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            }
+          },
+          "401": { "description": "" }
+        },
         "security": [{ "bearer": [] }],
         "tags": ["Auth"]
       }
@@ -550,7 +558,88 @@
       "get": {
         "operationId": "UsersController_getMe",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Users"]
+      },
+      "patch": {
+        "operationId": "UsersController_updateUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateUserDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserEntity" }
+              }
+            }
+          }
+        },
+        "tags": ["Users"]
+      }
+    },
+    "/users/me/github/org": {
+      "get": {
+        "operationId": "UsersController_getGithubOrgs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          }
+        ],
         "responses": { "200": { "description": "" } },
+        "tags": ["Users"]
+      }
+    },
+    "/users/me/github/repo": {
+      "get": {
+        "operationId": "UsersController_getGithubProjects",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "org",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "summary": "Get All Github Repo",
         "tags": ["Users"]
       }
     },
@@ -1722,23 +1811,90 @@
         "tags": ["Projects"]
       }
     },
-    "/projects/me/github": {
+    "/projects/{projectId}/github/repo": {
       "get": {
-        "operationId": "ProjectsController_getGithubProjects",
-        "parameters": [],
-        "responses": { "200": { "description": "" } },
+        "operationId": "ProjectsController_getProjectRepos",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "401": { "description": "" },
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/GithubRepoEntity" }
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }, { "bearer": [] }],
+        "summary": "Get Project Repo",
+        "tags": ["Projects"]
+      },
+      "post": {
+        "operationId": "ProjectsController_createGithubRepo",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateReposDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "The repo has been successfully created." }
+        },
         "security": [{ "bearer": [] }],
-        "summary": "Get All Github Project",
+        "summary": "Create GitHub Repo",
         "tags": ["Projects"]
       }
     },
-    "/projects/{projectId}/github/sync": {
-      "post": {
-        "operationId": "ProjectsController_syncGithubProject",
-        "parameters": [],
-        "responses": { "201": { "description": "" } },
+    "/projects/{projectId}/github/repo/{repoId}": {
+      "get": {
+        "operationId": "ProjectsController_findOneGithubRepo",
+        "parameters": [
+          {
+            "name": "projectId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "repoId",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns the specified GitHub repo.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GithubRepoEntity" }
+              }
+            }
+          }
+        },
         "security": [{ "bearer": [] }],
-        "summary": "Sync Project to Github",
+        "summary": "Get a single GitHub Repo",
         "tags": ["Projects"]
       }
     },
@@ -1898,9 +2054,22 @@
           }
         },
         "tags": ["Tasks"]
+      },
+      "delete": {
+        "operationId": "TasksController_deleteReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "tags": ["Tasks"]
       }
     },
-    "/projects/{projectid}/tasks/{projectId}/github/sync": {
+    "/projects/{projectid}/tasks/github/sync": {
       "post": {
         "operationId": "TasksController_createGithubIssue",
         "parameters": [
@@ -1986,9 +2155,11 @@
               "enum": [
                 "INIT",
                 "CONFIRMING",
+                "CONFIRMED",
                 "IN_PROCESSING",
                 "REJECTED",
-                "DONE"
+                "DONE",
+                "REOPEN"
               ],
               "type": "string"
             }
@@ -2108,6 +2279,19 @@
             }
           }
         },
+        "tags": ["Reports"]
+      },
+      "delete": {
+        "operationId": "ReportsController_deleteReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
         "tags": ["Reports"]
       }
     },
@@ -2450,6 +2634,75 @@
         "responses": { "201": { "description": "" } },
         "tags": ["Webhook"]
       }
+    },
+    "/notifications": {
+      "get": {
+        "operationId": "NotificationsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "number" }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "description": "Filter notifications by projectId",
+            "schema": { "example": 1, "type": "number" }
+          },
+          {
+            "name": "isSeen",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPaginateEntity"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Retrieve a list of notifications (filter by projectId & paginate)",
+        "tags": ["notifications"]
+      }
+    },
+    "/notifications/{id}": {
+      "patch": {
+        "operationId": "NotificationsController_updateNotification",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateNotificationDto" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "" } },
+        "tags": ["notifications"]
+      }
     }
   },
   "info": {
@@ -2506,7 +2759,9 @@
           "updatedAt": { "format": "date-time", "type": "string" },
           "role": { "$ref": "#/components/schemas/RoleEntity" },
           "phoneNumber": { "type": "string" },
-          "username": { "type": "string" }
+          "username": { "type": "string" },
+          "githubId": { "type": "string" },
+          "githubUsername": { "type": "string" }
         },
         "required": [
           "id",
@@ -2560,6 +2815,18 @@
         "required": ["accessToken", "refreshToken"]
       },
       "HttpExceptionEntity": { "type": "object", "properties": {} },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" },
+          "email": { "type": "string" },
+          "phoneNumber": { "type": "string" },
+          "address": { "type": "string" },
+          "fullname": { "type": "string" },
+          "avatar": { "type": "string" }
+        },
+        "required": ["username", "email", "phoneNumber", "fullname"]
+      },
       "UserRoleEntity": {
         "type": "object",
         "properties": {
@@ -2567,6 +2834,16 @@
           "category": { "type": "string", "enum": ["MEMBER", "GUEST", "OWNER"] }
         },
         "required": ["name", "category"]
+      },
+      "GithubRepoEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "githubId": { "type": "string" },
+          "name": { "type": "string" },
+          "owner": { "type": "string" }
+        },
+        "required": ["githubId", "name", "owner"]
       },
       "ProjectEntity": {
         "type": "object",
@@ -2577,7 +2854,12 @@
           "description": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
           "updatedAt": { "format": "date-time", "type": "string" },
-          "userRole": { "$ref": "#/components/schemas/UserRoleEntity" }
+          "userRole": { "$ref": "#/components/schemas/UserRoleEntity" },
+          "githubOrgName": { "type": "string" },
+          "GithubRepo": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GithubRepoEntity" }
+          }
         },
         "required": [
           "id",
@@ -2633,9 +2915,9 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/CreateProjectDomainDto" }
           },
-          "githubId": { "type": "number" }
-        },
-        "required": ["githubId"]
+          "githubOrgId": { "type": "number" },
+          "githubOrgName": { "type": "string" }
+        }
       },
       "CreateRoleDto": {
         "type": "object",
@@ -2682,7 +2964,10 @@
           "id": { "type": "number" },
           "name": { "type": "string" },
           "color": { "type": "string" },
-          "isCloseStatus": { "type": "boolean" }
+          "category": {
+            "type": "string",
+            "enum": ["OPEN", "CLOSE", "REOPEN", "CUSTOM"]
+          }
         },
         "required": ["id", "name", "color"]
       },
@@ -2878,6 +3163,25 @@
           }
         }
       },
+      "CreateGithubRepoDto": {
+        "type": "object",
+        "properties": {
+          "githubId": { "type": "string" },
+          "name": { "type": "string" },
+          "owner": { "type": "string" }
+        },
+        "required": ["githubId", "name", "owner"]
+      },
+      "UpdateReposDto": {
+        "type": "object",
+        "properties": {
+          "repos": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CreateGithubRepoDto" }
+          }
+        },
+        "required": ["repos"]
+      },
       "UserCompactEntity": {
         "type": "object",
         "properties": {
@@ -2893,12 +3197,18 @@
         },
         "required": ["user"]
       },
+      "IssueGithubEntity": {
+        "type": "object",
+        "properties": { "url": { "type": "string" } },
+        "required": ["url"]
+      },
       "TaskListItemEntity": {
         "type": "object",
         "properties": {
           "id": { "type": "number" },
           "name": { "type": "string" },
           "description": { "type": "string" },
+          "createdBy": { "type": "number" },
           "estimateTime": { "type": "number" },
           "deadline": { "format": "date-time", "type": "string" },
           "priority": {
@@ -2918,12 +3228,14 @@
           "Report": { "type": "object" },
           "reportId": { "type": "number" },
           "phaseId": { "type": "number" },
-          "taskType": { "type": "string", "enum": ["GITHUB", "DEFAULT"] }
+          "taskType": { "type": "string", "enum": ["GITHUB", "DEFAULT"] },
+          "IssueGithub": { "$ref": "#/components/schemas/IssueGithubEntity" }
         },
         "required": [
           "id",
           "name",
           "description",
+          "createdBy",
           "ProjectMember",
           "Report",
           "reportId"
@@ -2959,7 +3271,9 @@
           "tags": { "type": "array", "items": { "type": "number" } },
           "attachments": { "type": "array", "items": { "type": "number" } },
           "reportId": { "type": "number" },
-          "phaseId": { "type": "number" }
+          "phaseId": { "type": "number" },
+          "type": { "type": "string", "enum": ["GITHUB", "DEFAULT"] },
+          "repoId": { "type": "number" }
         },
         "required": ["name", "description"]
       },
@@ -3006,6 +3320,7 @@
           "id": { "type": "number" },
           "name": { "type": "string" },
           "description": { "type": "string" },
+          "createdBy": { "type": "number" },
           "estimateTime": { "type": "number" },
           "deadline": { "format": "date-time", "type": "string" },
           "priority": {
@@ -3026,6 +3341,7 @@
           "reportId": { "type": "number" },
           "phaseId": { "type": "number" },
           "taskType": { "type": "string", "enum": ["GITHUB", "DEFAULT"] },
+          "IssueGithub": { "$ref": "#/components/schemas/IssueGithubEntity" },
           "TaskAttachment": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/TaskAttachmentEntity" }
@@ -3039,6 +3355,7 @@
           "id",
           "name",
           "description",
+          "createdBy",
           "ProjectMember",
           "Report",
           "reportId",
@@ -3105,7 +3422,15 @@
           "projectId": { "type": "number" },
           "status": {
             "type": "string",
-            "enum": ["INIT", "CONFIRMING", "IN_PROCESSING", "REJECTED", "DONE"]
+            "enum": [
+              "INIT",
+              "CONFIRMING",
+              "CONFIRMED",
+              "IN_PROCESSING",
+              "REJECTED",
+              "DONE",
+              "REOPEN"
+            ]
           },
           "url": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
@@ -3113,7 +3438,8 @@
           "assignee": { "$ref": "#/components/schemas/UserCompactEntity" },
           "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
           "phaseId": { "type": "number" },
-          "isProcessing": { "type": "boolean" }
+          "isProcessing": { "type": "boolean" },
+          "isClosable": { "type": "boolean" }
         },
         "required": [
           "id",
@@ -3126,7 +3452,8 @@
           "url",
           "createdAt",
           "updatedAt",
-          "createdBy"
+          "createdBy",
+          "isClosable"
         ]
       },
       "ReportPaginationEntity": {
@@ -3279,7 +3606,15 @@
           "projectId": { "type": "number" },
           "status": {
             "type": "string",
-            "enum": ["INIT", "CONFIRMING", "IN_PROCESSING", "REJECTED", "DONE"]
+            "enum": [
+              "INIT",
+              "CONFIRMING",
+              "CONFIRMED",
+              "IN_PROCESSING",
+              "REJECTED",
+              "DONE",
+              "REOPEN"
+            ]
           },
           "url": { "type": "string" },
           "createdAt": { "format": "date-time", "type": "string" },
@@ -3288,6 +3623,7 @@
           "createdBy": { "$ref": "#/components/schemas/UserCompactEntity" },
           "phaseId": { "type": "number" },
           "isProcessing": { "type": "boolean" },
+          "isClosable": { "type": "boolean" },
           "ReportImage": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ReportImageEntity" }
@@ -3321,6 +3657,7 @@
           "createdAt",
           "updatedAt",
           "createdBy",
+          "isClosable",
           "ReportImage",
           "ReportComment"
         ]
@@ -3398,6 +3735,68 @@
         "type": "object",
         "properties": { "content": { "type": "string" } },
         "required": ["content"]
+      },
+      "NotiFieldInformation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "name": { "type": "number" }
+        },
+        "required": ["name"]
+      },
+      "NotificationContent": {
+        "type": "object",
+        "properties": {
+          "subject": { "$ref": "#/components/schemas/NotiFieldInformation" },
+          "action": {
+            "type": "string",
+            "enum": ["CREATE", "UPDATE", "DELETE"]
+          },
+          "objectEntity": { "type": "string", "enum": ["REPORT", "TASK"] },
+          "object": { "$ref": "#/components/schemas/NotiFieldInformation" },
+          "objectAttribute": { "type": "string" },
+          "objectAttributeValue": {
+            "$ref": "#/components/schemas/NotiFieldInformation"
+          }
+        },
+        "required": ["subject", "action", "objectEntity", "object"]
+      },
+      "NotificationEntity": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "content": { "$ref": "#/components/schemas/NotificationContent" },
+          "createdAt": { "format": "date-time", "type": "string" },
+          "projectId": { "type": "number" },
+          "userId": { "type": "number" },
+          "isSeen": { "type": "boolean" },
+          "ProjectMember": { "type": "object" }
+        },
+        "required": [
+          "id",
+          "content",
+          "createdAt",
+          "projectId",
+          "userId",
+          "isSeen",
+          "ProjectMember"
+        ]
+      },
+      "NotificationPaginateEntity": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/NotificationEntity" }
+          }
+        },
+        "required": ["total", "items"]
+      },
+      "UpdateNotificationDto": {
+        "type": "object",
+        "properties": { "isSeen": { "type": "boolean" } },
+        "required": ["isSeen"]
       }
     }
   },

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ProjectRole } from '@prisma/client';
 import { UserCompactEntity } from 'src/users/entities/user.entity';
 
@@ -7,6 +7,16 @@ export class ProjectMemberEntity {
     type: UserCompactEntity,
   })
   user: UserCompactEntity;
+}
+export class GithubRepoEntity {
+  @ApiPropertyOptional()
+  id?: number;
+  @ApiProperty()
+  githubId: string;
+  @ApiProperty()
+  name: string;
+  @ApiProperty()
+  owner: string;
 }
 class UserRoleEntity {
   @ApiProperty()
@@ -35,6 +45,12 @@ export class ProjectEntity {
 
   @ApiProperty({ type: UserRoleEntity, required: false })
   userRole?: UserRoleEntity;
+
+  @ApiPropertyOptional()
+  githubOrgName?: string;
+
+  @ApiPropertyOptional({ type: GithubRepoEntity, isArray: true })
+  GithubRepo?: GithubRepoEntity[];
 
   constructor(partial: Partial<ProjectEntity>) {
     Object.assign(this, partial);

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Logger,
@@ -93,7 +94,7 @@ export class TasksController {
   }
 
   @ApiOperation({ summary: 'Create Github Issue' })
-  @Post(':projectId/github/sync')
+  @Post('github/sync')
   async createGithubIssue(
     @Request() { user }: LoggedUserRequest,
     @Body() taskData: CreateTaskDto,
@@ -105,5 +106,13 @@ export class TasksController {
       taskData,
     );
     return new TaskFullEntity(res);
+  }
+
+  @Delete('me/:id')
+  deleteReport(
+    @Request() { user }: LoggedUserRequest,
+    @Param('id') id: string,
+  ) {
+    return this.tasksService.deleteTask(+user.id, +id);
   }
 }
