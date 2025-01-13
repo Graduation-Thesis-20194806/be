@@ -26,8 +26,10 @@ export class TasksService {
     projectid: number,
     taskData: CreateTaskDto,
   ) {
-    const { attachments, phaseId, repoId, ...createTaskDto } = taskData;
+    const { attachments, phaseId, repoId, statusId, ...createTaskDto } =
+      taskData;
     let phaseIdInput = phaseId;
+    let statusIdInput = statusId;
     if (!phaseId) {
       const phase = await this.prismaService.phase.findFirst({
         where: {
@@ -41,6 +43,15 @@ export class TasksService {
         },
       });
       phaseIdInput = phase?.id;
+    }
+    if (!statusIdInput) {
+      const status = await this.prismaService.status.findFirst({
+        where: {
+          projectId: projectid,
+          category: TaskStatusCategory.OPEN,
+        },
+      });
+      statusIdInput = status?.id;
     }
     const task = await this.prismaService.task.create({
       data: {

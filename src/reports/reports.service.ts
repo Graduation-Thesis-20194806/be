@@ -89,34 +89,6 @@ export class ReportsService {
     } catch (e) {
       console.log(e);
     }
-    const owner = await this.prismaService.projectMember.findFirst({
-      where: { role: { category: ProjectRole.OWNER } },
-    });
-    const user = await this.prismaService.user.findUnique({
-      where: { id: user_id },
-      select: {
-        username: true,
-      },
-    });
-    await this.notificationService.create(
-      {
-        userId: owner.userId,
-        projectId: projectid,
-        content: {
-          subject: {
-            id: user_id,
-            name: user.username,
-          },
-          action: NotiAction.CREAT,
-          object: {
-            id: report.id,
-            name: report.name,
-          },
-          objectEntity: NotiEntity.REPORT,
-        },
-      },
-      [owner.userId],
-    );
     return report;
   }
   async updateReport(
@@ -125,9 +97,15 @@ export class ReportsService {
     report_id: number,
     reportData: UpdateReportDto,
   ) {
-    // const report = await this.prismaService.report.findUnique({
-    //   where: { id: report_id },
-    // });
+    const oldReport = await this.prismaService.report.findUnique({
+      where: { id: report_id },
+    });
+    if (!oldReport) return;
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: user_id,
+      },
+    });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { newImages, deleteImages, images, ...updateReportDto } = reportData;
     let isDone = false;
@@ -155,6 +133,107 @@ export class ReportsService {
           },
         },
       });
+    }
+
+    if (updateReportDto.status && updateReportDto.status !== oldReport.status) {
+      switch (updateReportDto.status) {
+        case ReportStatus.CONFIRMED:
+          await this.notificationService.create(
+            {
+              userId: oldReport.createdById,
+              projectId: oldReport.projectId,
+              content: {
+                subject: {
+                  id: user_id,
+                  name: user.username,
+                },
+                action: NotiAction.UPDATE,
+                object: {
+                  id: oldReport.id,
+                  name: oldReport.name,
+                },
+                objectEntity: NotiEntity.REPORT,
+                objectAttribute: 'status',
+                objectAttributeValue: { name: 'Confirmed' },
+              },
+            },
+            [oldReport.createdById],
+          );
+          break;
+        case ReportStatus.REJECTED:
+          updateReportDto.assignedTo = oldReport.createdById;
+          await this.notificationService.create(
+            {
+              userId: oldReport.createdById,
+              projectId: oldReport.projectId,
+              content: {
+                subject: {
+                  id: user_id,
+                  name: user.username,
+                },
+                action: NotiAction.UPDATE,
+                object: {
+                  id: oldReport.id,
+                  name: oldReport.name,
+                },
+                objectEntity: NotiEntity.REPORT,
+                objectAttribute: 'Status',
+                objectAttributeValue: { name: 'Rejected' },
+              },
+            },
+            [oldReport.createdById],
+          );
+          break;
+        case ReportStatus.DONE:
+          await this.notificationService.create(
+            {
+              userId: oldReport.createdById,
+              projectId: oldReport.projectId,
+              content: {
+                subject: {
+                  id: user_id,
+                  name: user.username,
+                },
+                action: NotiAction.UPDATE,
+                object: {
+                  id: oldReport.id,
+                  name: oldReport.name,
+                },
+                objectEntity: NotiEntity.REPORT,
+                objectAttribute: 'Status',
+                objectAttributeValue: { name: 'Done' },
+              },
+            },
+            [oldReport.createdById],
+          );
+          break;
+      }
+    }
+    if (
+      updateReportDto.assignedTo &&
+      updateReportDto.assignedTo !== oldReport.assignedTo
+    ) {
+      await this.notificationService.create(
+        {
+          userId: updateReportDto.assignedTo,
+          projectId: oldReport.projectId,
+          content: {
+            subject: {
+              id: user_id,
+              name: user.username,
+            },
+            action: NotiAction.UPDATE,
+            object: {
+              id: oldReport.id,
+              name: oldReport.name,
+            },
+            objectEntity: NotiEntity.REPORT,
+            objectAttribute: 'Assign',
+            objectAttributeValue: { name: 'You' },
+          },
+        },
+        [updateReportDto.assignedTo],
+      );
     }
     const report = await this.prismaService.report.update({
       where: {
@@ -194,7 +273,6 @@ export class ReportsService {
         },
       },
     });
-    console.log(report);
     if (!report) return;
     if (newImages?.length) {
       const reportImages =
@@ -313,7 +391,7 @@ export class ReportsService {
             },
           },
         });
-        result.push({ ...item, isClosable: !!tasks?.length });
+        result.push({ ...item, isClosable: !tasks?.length });
       }
     }
     return {
@@ -415,7 +493,7 @@ export class ReportsService {
           },
         },
       });
-      return { ...report, isClosable: !!tasks?.length };
+      return { ...report, isClosable: !tasks?.length };
     } else {
       return { ...report, isClosable: false };
     }
@@ -474,11 +552,44 @@ export class ReportsService {
           parentId: report_id,
         },
       });
-      res = await this.prismaService.report.delete({
+      const report = await this.prismaService.report.findUnique({
         where: {
           id: childrenId,
         },
+        include: {
+          assignee: true,
+        },
       });
+      res = await this.prismaService.report.update({
+        where: {
+          id: childrenId,
+        },
+        data: {
+          status: ReportStatus.REJECTED,
+          assignedTo: report.createdById,
+        },
+      });
+      await this.notificationService.create(
+        {
+          userId: report.createdById,
+          projectId: report.projectId,
+          content: {
+            subject: {
+              id: report.assignedTo,
+              name: report.assignee.username,
+            },
+            action: NotiAction.UPDATE,
+            object: {
+              id: report.id,
+              name: report.name,
+            },
+            objectEntity: NotiEntity.REPORT,
+            objectAttribute: 'Status',
+            objectAttributeValue: { name: 'Rejected' },
+          },
+        },
+        [report.createdById],
+      );
     }
     await this.prismaService.duplicateGroup.deleteMany({
       where: {

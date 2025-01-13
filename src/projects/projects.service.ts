@@ -138,9 +138,6 @@ export class ProjectsService {
         select: {
           projectMembers: {
             where: {
-              role: {
-                category: ProjectRole.OWNER,
-              },
               userId: user_id,
             },
             select: {

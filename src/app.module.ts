@@ -29,6 +29,10 @@ import { WebhookModule } from './webhook/webhook.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { NotificationsService } from './notifications/notifications.service';
 import { NotificationsGateway } from './notifications/notifications.gateway';
+import { SqsService } from './sqs/sqs.service';
+import { SqsModule } from './sqs/sqs.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SqsConsumer } from './sqs/sqs.consumer';
 // Import các module khác
 
 @Module({
@@ -79,6 +83,8 @@ import { NotificationsGateway } from './notifications/notifications.gateway';
     GithubModule.forRoot({ isGlobal: true }),
     WebhookModule,
     NotificationsModule.forRoot({ isGlobal: true }),
+    SqsModule,
+    ScheduleModule.forRoot(),
     // Các module khác
   ],
   controllers: [AppController, StatisticController],
@@ -93,6 +99,8 @@ import { NotificationsGateway } from './notifications/notifications.gateway';
     GithubService,
     NotificationsService,
     NotificationsGateway,
+    SqsService,
+    SqsConsumer,
   ],
 })
 export class AppModule implements NestModule {

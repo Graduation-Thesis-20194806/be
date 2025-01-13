@@ -4,7 +4,6 @@ import { Logger, LogLevel, ValidationPipe } from '@nestjs/common';
 import { PrismaClientExceptionFilter } from './common/filter/prisma-client-exception.filter';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
@@ -20,13 +19,6 @@ async function bootstrap() {
     logger: loglevels,
   });
   const configService = app.get(ConfigService);
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.REDIS,
-    options: {
-      host: configService.get<string>('REDIS_HOST') ?? 'localhost',
-      port: configService.get<number>('REDIS_PORT') ?? 6379,
-    },
-  });
 
   await app.startAllMicroservices();
 
