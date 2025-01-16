@@ -17,6 +17,7 @@ import { ReportsService } from 'src/reports/reports.service';
 import { ProjectsService } from 'src/projects/projects.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SqsService {
@@ -28,15 +29,27 @@ export class SqsService {
     private projectsService: ProjectsService,
     private prismaService: PrismaService,
     private notificationsService: NotificationsService,
+    private configService: ConfigService,
   ) {
     // Replace with your SQS region
-    this.sqsClient = new SQSClient({
-      region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
+    if (
+      this.configService.get<string>('AWS_ACCESS_KEY_ID') &&
+      this.configService.get<string>('AWS_SECRET_ACCESS_KEY')
+    ) {
+      this.sqsClient = new SQSClient({
+        region: this.configService.get<string>('AWS_REGION'),
+        credentials: {
+          accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+          secretAccessKey: this.configService.get<string>(
+            'AWS_SECRET_ACCESS_KEY',
+          ),
+        },
+      });
+    } else {
+      this.sqsClient = new SQSClient({
+        region: this.configService.get<string>('AWS_REGION'),
+      });
+    }
   }
 
   /**

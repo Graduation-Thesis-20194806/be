@@ -1,19 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FilesService {
   private s3Client: S3Client;
 
-  constructor() {
-    this.s3Client = new S3Client({
-      region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    });
+  constructor(private configService: ConfigService) {
+    if (
+      this.configService.get<string>('AWS_ACCESS_KEY_ID') &&
+      this.configService.get<string>('AWS_SECRET_ACCESS_KEY')
+    ) {
+      this.s3Client = new S3Client({
+        region: this.configService.get<string>('AWS_REGION'),
+        credentials: {
+          accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+          secretAccessKey: this.configService.get<string>(
+            'AWS_SECRET_ACCESS_KEY',
+          ),
+        },
+      });
+    } else {
+      this.s3Client = new S3Client({
+        region: this.configService.get<string>('AWS_REGION'),
+      });
+    }
   }
 
   async getPresignedUrl(key: string, expiration = 3600): Promise<string> {

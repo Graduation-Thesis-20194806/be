@@ -1,26 +1,28 @@
-FROM public.ecr.aws/docker/library/node:18-bullseye-slim AS builder
+FROM node:20 AS builder
 
-# RUN apk update
-# RUN apk --no-cache add make gcc g++ --virtual .builds-deps build-base python3 musl-dev openssl-dev
-
+# Create app directory
 WORKDIR /app
 
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 COPY prisma ./prisma/
 
+# Install app dependencies
 RUN npm install
 
 COPY . .
+COPY .env.production .env
+
+RUN npm run prisma:generate
 
 RUN npm run build
-RUN npm ci --omit=dev
 
+FROM node:20
 
-FROM gcr.io/distroless/nodejs18-debian12
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/.env ./.env
 
-WORKDIR /app
-
-COPY --from=builder /app ./
-COPY .env.default .env
-
-CMD ["dist/main.js"]
+EXPOSE 3001
+CMD [ "npm", "run", "start:prod" ]

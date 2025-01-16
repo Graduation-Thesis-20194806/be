@@ -10,15 +10,24 @@ export class EmailService {
   private sesClient: SESClient;
 
   constructor(private configService: ConfigService) {
-    this.sesClient = new SESClient({
-      region: this.configService.get<string>('AWS_REGION'),
-      credentials: {
-        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: this.configService.get<string>(
-          'AWS_SECRET_ACCESS_KEY',
-        ),
-      },
-    });
+    if (
+      this.configService.get<string>('AWS_ACCESS_KEY_ID') &&
+      this.configService.get<string>('AWS_SECRET_ACCESS_KEY')
+    ) {
+      this.sesClient = new SESClient({
+        region: this.configService.get<string>('AWS_REGION'),
+        credentials: {
+          accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+          secretAccessKey: this.configService.get<string>(
+            'AWS_SECRET_ACCESS_KEY',
+          ),
+        },
+      });
+    } else {
+      this.sesClient = new SESClient({
+        region: this.configService.get<string>('AWS_REGION'),
+      });
+    }
   }
 
   async sendEmail(

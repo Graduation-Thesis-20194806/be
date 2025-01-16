@@ -101,6 +101,9 @@ export class ReportsService {
       where: { id: report_id },
     });
     if (!oldReport) return;
+    if (oldReport.status === ReportStatus.REJECTED) {
+      reportData.status = ReportStatus.REOPEN;
+    }
     const user = await this.prismaService.user.findUnique({
       where: {
         id: user_id,
@@ -481,6 +484,7 @@ export class ReportsService {
         },
       },
     });
+    if (!report) return;
     if (report.status === ReportStatus.IN_PROCESSING) {
       const tasks = await this.prismaService.task.findMany({
         where: {
@@ -613,6 +617,14 @@ export class ReportsService {
       where: {
         createdById: user_id,
         id: report_id,
+      },
+    });
+  }
+  async removeDuplicate(report_id: number, children_id: number) {
+    return this.prismaService.duplicateGroup.deleteMany({
+      where: {
+        reportId1: report_id,
+        reportId2: children_id,
       },
     });
   }

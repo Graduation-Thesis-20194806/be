@@ -51,10 +51,12 @@ import { SqsConsumer } from './sqs/sqs.consumer';
         PORT: Joi.number().default(3001),
         ENABLE_SWAGGER: Joi.boolean().default(false),
         JWT_ACCESS_SECRET: Joi.string(),
-        JWT_ACCESS_EXPIRES_IN: Joi.string().default('5m'),
+        JWT_ACCESS_EXPIRES_IN: Joi.string().default('30m'),
         JWT_REFRESH_EXPIRES_IN: Joi.string().default('1d'),
         REGISTER_TOKEN_EXPIRES_IN: Joi.string().default('1d'),
         SALT_ROUND: Joi.number().default(10),
+        EMAIL_FROM: Joi.string().default('ch.nam0121@gmail.com'),
+        AWS_REGION: Joi.string().default('ap-southeast-1'),
       }),
     }),
     PrismaModule.forRoot({
